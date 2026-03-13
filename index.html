@@ -187,6 +187,31 @@
   .no-config h3 { font-size:16px; font-weight:700; color:var(--tk-color); margin-bottom:10px; font-family:var(--font); }
   .no-config p { font-size:13px; color:var(--muted); line-height:1.6; max-width:500px; margin:0 auto 16px; }
   .no-config code { display:block; background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:12px 16px; font-family:monospace; font-size:12px; color:#a0c4ff; text-align:left; max-width:600px; margin:0 auto; white-space:pre-wrap; }
+
+  /* ─── ECO LOADER ─── */
+  .eco-panel { position:fixed; bottom:20px; right:20px; z-index:500; }
+  .eco-fab { width:48px; height:48px; border-radius:50%; background:var(--tk-color); border:none; cursor:pointer; font-size:20px; box-shadow:0 4px 16px rgba(0,0,0,0.6); transition:transform .15s; display:flex; align-items:center; justify-content:center; }
+  .eco-fab:hover { transform:scale(1.1); }
+  .eco-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:1000; align-items:center; justify-content:center; }
+  .eco-modal.open { display:flex; }
+  .eco-box { background:#111; border:1px solid #2a2a2a; border-radius:8px; width:700px; max-width:96vw; max-height:90vh; overflow-y:auto; padding:22px; }
+  .eco-title { font-size:14px; font-weight:700; font-family:var(--font); color:var(--text); margin-bottom:4px; }
+  .eco-sub { font-size:11px; color:#606070; font-family:var(--font); margin-bottom:14px; }
+  .eco-prompt-box { background:#0a0a14; border:1px solid #1a1a2a; border-radius:4px; padding:10px 12px; font-family:monospace; font-size:11px; color:#a0c4ff; white-space:pre-wrap; word-break:break-all; margin-bottom:12px; cursor:pointer; transition:border-color .15s; }
+  .eco-prompt-box:hover { border-color:#3b82f6; }
+  .eco-textarea { width:100%; min-height:160px; background:#0a0a14; border:1px solid #2a2a2a; border-radius:4px; padding:10px; font-family:monospace; font-size:12px; color:#e0e0e0; resize:vertical; outline:none; margin-bottom:10px; }
+  .eco-textarea:focus { border-color:var(--tk-color); }
+  .eco-btn-row { display:flex; gap:8px; }
+  .eco-btn-load { flex:1; padding:9px; background:var(--tk-color); color:#fff; border:none; border-radius:4px; font-weight:700; font-family:var(--font); cursor:pointer; font-size:13px; }
+  .eco-btn-close { padding:9px 16px; background:none; border:1px solid #2a2a2a; border-radius:4px; color:#606070; font-family:var(--font); cursor:pointer; font-size:13px; }
+  .eco-status { font-size:12px; font-family:var(--font); margin-top:8px; min-height:18px; }
+  .eco-copy-hint { font-size:10px; color:#3b82f6; font-family:var(--font); margin-bottom:6px; }
+  .eco-tabs { display:flex; gap:2px; margin-bottom:12px; }
+  .eco-tab-btn { padding:5px 12px; font-size:11px; font-weight:700; border-radius:3px; border:1px solid #2a2a2a; background:none; cursor:pointer; font-family:var(--font); color:#606070; }
+  .eco-tab-btn.active { background:var(--tk-color); color:#fff; border-color:var(--tk-color); }
+  .eco-section { display:none; }
+  .eco-section.active { display:block; }
+
 </style>
 </head>
 <body>
@@ -1250,5 +1275,67 @@ function renderAnalytics(){
 // Render operaciones on load
 renderOperaciones();
 </script>
+
+<!-- ══ ECO LOADER ══════════════════════════════════════════════════════════ -->
+<div class="eco-panel">
+  <button class="eco-fab" onclick="document.getElementById('eco-modal').classList.add('open')" title="Cargar datos de Eco / Clau">📥</button>
+</div>
+<div class="eco-modal" id="eco-modal">
+  <div class="eco-box">
+    <div class="eco-title">📥 Cargar cadena desde Eco / Clau</div>
+    <div class="eco-sub">Usá el prompt de abajo con la extensión Clau apuntando a la cadena de Ecovalores, luego pegá el JSON resultante.</div>
+    
+    <div class="eco-tabs">
+      <button class="eco-tab-btn active" onclick="ecoTab('prompt',this)">1. Prompt para Clau</button>
+      <button class="eco-tab-btn" onclick="ecoTab('json',this)">2. Pegar JSON</button>
+      <button class="eco-tab-btn" onclick="ecoTab('manual',this)">3. Entrada manual</button>
+    </div>
+
+    <!-- TAB PROMPT -->
+    <div class="eco-section active" id="eco-sec-prompt">
+      <div style="font-size:11px;color:#606070;font-family:var(--font);margin-bottom:6px;">Copiá este prompt y usalo con Clau apuntando a la pantalla de opciones de Eco:</div>
+      <div class="eco-prompt-box" id="eco-prompt-text" onclick="copiarPrompt(this)"></div>
+      <div class="eco-copy-hint" id="eco-copy-hint">👆 Click para copiar el prompt</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;">
+        <button onclick="setPromptTicker('PAMP')" style="padding:6px;background:rgba(59,130,246,0.2);color:#3b82f6;border:1px solid #3b82f6;border-radius:3px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;">PAMP</button>
+        <button onclick="setPromptTicker('YPFD')" style="padding:6px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid #22c55e;border-radius:3px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;">YPFD</button>
+        <button onclick="setPromptTicker('GGAL')" style="padding:6px;background:rgba(212,88,26,0.15);color:#d4581a;border:1px solid #d4581a;border-radius:3px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;">GGAL</button>
+      </div>
+    </div>
+
+    <!-- TAB JSON -->
+    <div class="eco-section" id="eco-sec-json">
+      <div style="font-size:11px;color:#606070;font-family:var(--font);margin-bottom:6px;">Pegá el JSON que devolvió Clau:</div>
+      <textarea class="eco-textarea" id="eco-json-input" placeholder='{"ticker":"PAMP","fecha":"2026-03-13","hora":"13:24","spot":4737.5,"vencimientos":[...]}'></textarea>
+      <div class="eco-btn-row">
+        <button class="eco-btn-load" onclick="cargarEcoJSON()">✓ Cargar en mesa</button>
+        <button class="eco-btn-close" onclick="document.getElementById('eco-modal').classList.remove('open')">Cancelar</button>
+      </div>
+      <div class="eco-status" id="eco-status"></div>
+    </div>
+
+    <!-- TAB MANUAL -->
+    <div class="eco-section" id="eco-sec-manual">
+      <div style="font-size:11px;color:#606070;font-family:var(--font);margin-bottom:10px;">Ingresá los datos clave manualmente:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div><div style="font-size:10px;color:#606070;font-family:var(--font);margin-bottom:3px;font-weight:700;">Ticker</div>
+          <select id="man-ticker" style="width:100%;background:#0d0d18;color:var(--text);border:1px solid #2a2a2a;border-radius:3px;padding:5px;font-family:var(--font);">
+            <option>PAMP</option><option>YPFD</option><option>GGAL</option>
+          </select></div>
+        <div><div style="font-size:10px;color:#606070;font-family:var(--font);margin-bottom:3px;font-weight:700;">Spot</div><input type="number" id="man-spot" placeholder="4737.5" style="width:100%;"></div>
+        <div><div style="font-size:10px;color:#606070;font-family:var(--font);margin-bottom:3px;font-weight:700;">Días al vto.</div><input type="number" id="man-dias" placeholder="35" style="width:100%;"></div>
+      </div>
+      <div style="font-size:11px;color:#606070;font-family:var(--font);margin-bottom:6px;">Strikes (uno por línea: STRIKE,CALL_LAST,PUT_LAST,VI_CALL,VI_PUT)</div>
+      <textarea class="eco-textarea" id="man-strikes" placeholder="3500,1340000,null,0.57,null&#10;3900,970000,null,0.55,null&#10;5000,200000,null,0.44,0.44&#10;6200,null,1511000,null,0.52" style="min-height:120px;"></textarea>
+      <div class="eco-btn-row">
+        <button class="eco-btn-load" onclick="cargarManual()">✓ Cargar en mesa</button>
+        <button class="eco-btn-close" onclick="document.getElementById('eco-modal').classList.remove('open')">Cancelar</button>
+      </div>
+      <div class="eco-status" id="man-status"></div>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
