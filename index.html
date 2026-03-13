@@ -641,6 +641,14 @@ function switchTicker(ticker, btn) {
   const banner = document.getElementById('no-config-banner');
   const content = document.getElementById('plaza-content');
   if (!cfg.csvUrl) {
+    // Verificar si hay datos embebidos
+    if (window.ECO_DATA_EMBEDDED && window.ECO_DATA_EMBEDDED[ticker]) {
+      banner.style.display = 'none';
+      content.style.display = 'block';
+      spotGGAL = null; strikesDisponibles = []; strikeLast = {}; diasVto = 37;
+      cargarDatosEmbebidos(ticker);
+      return;
+    }
     banner.style.display = 'block';
     content.style.display = 'none';
     document.getElementById('no-config-code').textContent = `${ticker}: {\n  name:'${ticker}', icon:'${cfg.icon}',\n  csvUrl: 'PEGAR_URL_CSV_AQUI',\n  color:'${cfg.color}', light:'${cfg.light}'\n}`;
@@ -1271,6 +1279,128 @@ function renderAnalytics(){
   if(estEl)estEl.innerHTML=Object.entries(porEst).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
     `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1a1a1a;font-family:var(--font);font-size:12px;"><span style="color:#606070;">${k}</span><span style="font-weight:700;color:${v>=0?'#22c55e':'#ef4444'};">$${fmtARS(v)}</span></div>`).join('');
 }
+
+
+// ─── DATOS EMBEBIDOS PAMP / YPFD (13/03/2026 17:00 cierre) ───────────────────
+window.ECO_DATA_EMBEDDED = {
+  PAMP: {"ticker":"PAMP","fecha":"2026-03-13","hora":"17:00","spot":4745,"dias_vto":35,"vencimientos":[{"fecha_vto":"17Abr","strikes":[
+    {"strike":3500,"call":{"compra":1325000,"venta":null,"ultimo":null,"vi":null,"var_pct":-10.23,"cierre":1325000,"delta":1.0},"put":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":null,"cierre":null,"delta":null}},
+    {"strike":3900,"call":{"compra":null,"venta":null,"ultimo":989170,"vi":0.6323,"var_pct":-7.11,"cierre":989170,"delta":0.888},"put":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":null,"cierre":null,"delta":null}},
+    {"strike":5000,"call":{"compra":170000,"venta":185000,"ultimo":185000,"vi":0.4187,"var_pct":-11.90,"cierre":185000,"delta":0.436},"put":{"compra":223300,"venta":300000,"ultimo":null,"vi":null,"var_pct":0,"cierre":227200,"delta":null}},
+    {"strike":5600,"call":{"compra":15000,"venta":32000,"ultimo":18000,"vi":0.3243,"var_pct":-43.75,"cierre":18000,"delta":0.086},"put":{"compra":null,"venta":910000,"ultimo":610005,"vi":null,"var_pct":1.67,"cierre":610005,"delta":-1.0}},
+    {"strike":5900,"call":{"compra":5000,"venta":18000,"ultimo":6000,"vi":0.3316,"var_pct":-25.20,"cierre":6000,"delta":0.033},"put":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":364500,"delta":null}},
+    {"strike":6200,"call":{"compra":null,"venta":9000,"ultimo":null,"vi":null,"var_pct":0,"cierre":7500,"delta":null},"put":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":null,"delta":null}},
+    {"strike":6500,"call":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":null,"cierre":null,"delta":null},"put":{"compra":null,"venta":1600000,"ultimo":1600000,"vi":null,"var_pct":-1.54,"cierre":1600000,"delta":-1.0}}
+  ]}]},
+  YPFD: {"ticker":"YPFD","fecha":"2026-03-13","hora":"17:00","spot":56200,"dias_vto":35,"vencimientos":[{"fecha_vto":"17Abr","strikes":[
+    {"strike":40500,"call":{"compra":10,"venta":17058980,"ultimo":16071000,"vi":null,"var_pct":-3.71,"cierre":null,"delta":1.0},"put":{"compra":3000,"venta":539820,"ultimo":null,"vi":null,"var_pct":0,"cierre":436990,"delta":null}},
+    {"strike":43000,"call":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":null,"delta":null},"put":{"compra":10000,"venta":46999,"ultimo":47000,"vi":0.4526,"var_pct":0,"cierre":47000,"delta":-0.016}},
+    {"strike":46000,"call":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":null,"delta":null},"put":{"compra":null,"venta":340000,"ultimo":null,"vi":0.44,"var_pct":null,"cierre":null,"delta":null}},
+    {"strike":47500,"call":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":null,"delta":null},"put":{"compra":30500,"venta":380000,"ultimo":null,"vi":0.45,"var_pct":0,"cierre":317500,"delta":null}},
+    {"strike":49000,"call":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":null,"delta":null},"put":{"compra":250000,"venta":325500,"ultimo":null,"vi":0.45,"var_pct":0,"cierre":344000,"delta":null}},
+    {"strike":52000,"call":{"compra":5094340,"venta":null,"ultimo":5400000,"vi":0.1385,"var_pct":-1.82,"cierre":5400000,"delta":0.991},"put":{"compra":500000,"venta":910000,"ultimo":590000,"vi":0.3595,"var_pct":-15.33,"cierre":590000,"delta":-0.168}},
+    {"strike":55000,"call":{"compra":3050000,"venta":3885500,"ultimo":3146900,"vi":0.2399,"var_pct":-14.09,"cierre":3264600,"delta":0.739},"put":{"compra":1400000,"venta":1500000,"ultimo":1600000,"vi":0.3907,"var_pct":14.37,"cierre":1600000,"delta":-0.333}},
+    {"strike":58000,"call":{"compra":1699000,"venta":1750000,"ultimo":1750000,"vi":0.2835,"var_pct":-3.47,"cierre":1750000,"delta":0.480},"put":{"compra":2200000,"venta":3200000,"ultimo":2600000,"vi":0.3383,"var_pct":8.33,"cierre":2600000,"delta":-0.511}},
+    {"strike":61000,"call":{"compra":900000,"venta":935500,"ultimo":900000,"vi":0.3069,"var_pct":-10.10,"cierre":890000,"delta":0.284},"put":{"compra":3000500,"venta":null,"ultimo":null,"vi":null,"var_pct":0,"cierre":null,"delta":null}},
+    {"strike":64000,"call":{"compra":430000,"venta":450000,"ultimo":430000,"vi":0.3270,"var_pct":-7.66,"cierre":450000,"delta":0.158},"put":{"compra":null,"venta":null,"ultimo":null,"vi":null,"var_pct":null,"cierre":null,"delta":null}}
+  ]}]}
+};
+
+function cargarDatosEmbebidos(ticker) {
+  const data = window.ECO_DATA_EMBEDDED[ticker];
+  if (!data) return;
+  const cfg = TICKER_CONFIG[ticker];
+  
+  // Spot y DTE
+  spotGGAL = data.spot;
+  diasVto = data.dias_vto || 35;
+  strikesDisponibles = [];
+  strikeLast = {};
+
+  // Header
+  document.getElementById('spot-val').textContent = data.spot.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('dias-val').textContent = diasVto;
+  document.getElementById('update-time').textContent = 'Eco ' + data.hora;
+  const sub = document.getElementById('tksub-' + ticker);
+  if (sub) sub.textContent = 'Eco ' + data.hora;
+  document.getElementById('var-val').textContent = '—';
+  const si = document.getElementById('spot-input');
+  if (si && !si.value) si.value = data.spot.toFixed(2);
+
+  // Construir strikeLast
+  const vto = data.vencimientos[0];
+  vto.strikes.forEach(s => {
+    const K = parseFloat(s.strike);
+    if (!K) return;
+    strikesDisponibles.push(K);
+    const viC = s.call?.vi || null;
+    const viP = s.put?.vi || null;
+    strikeLast[K] = {
+      call: s.call?.ultimo || s.call?.cierre || null,
+      put: s.put?.ultimo || s.put?.cierre || null,
+      viCall: viC && viC > 1 ? viC/100 : viC,
+      viPut: viP && viP > 1 ? viP/100 : viP,
+      callData: s.call,
+      putData: s.put
+    };
+  });
+
+  // Render plaza
+  const T = diasVto / 365;
+  const r = Math.log(1 + 0.40);
+  let callsH = '', putsH = '', strikesH = '';
+  const sortedK = [...strikesDisponibles].sort((a,b) => a-b);
+
+  sortedK.forEach(K => {
+    const ld = strikeLast[K];
+    if (!ld) return;
+    const atm = Math.abs(K - data.spot) < data.spot * 0.015;
+    const rowC = atm ? 'row-atm' : K < data.spot ? 'row-itm-call' : 'row-otm-call';
+    const rowP = atm ? 'row-atm' : K > data.spot ? 'row-itm-put' : 'row-otm-put';
+    const atmB = atm ? ` <span style="background:${cfg.color};color:#fff;font-size:9px;padding:1px 3px;border-radius:2px;font-weight:700;">ATM</span>` : '';
+    const viC = ld.viCall || 0.55, viP = ld.viPut || 0.55;
+    const gC = bsGreeks(data.spot, K, T, r, viC, 'C');
+    const gP = bsGreeks(data.spot, K, T, r, viP, 'P');
+    const cd = ld.callData || {}, pd = ld.putData || {};
+    const tickerC = ticker + 'C' + K, tickerP = ticker + 'V' + K;
+    const viCpct = cd.vi ? ((cd.vi > 1 ? cd.vi : cd.vi*100).toFixed(2) + '%') : '<span class="empty">—</span>';
+    const viPpct = pd.vi ? ((pd.vi > 1 ? pd.vi : pd.vi*100).toFixed(2) + '%') : '<span class="empty">—</span>';
+
+    callsH += `<tr class="${rowC}" style="cursor:pointer;" onclick="agregarDesdeChain('C',${K},${ld.call||0})">
+      <td>${tickerC}${atmB}</td>
+      <td class="bid">${fmtNum(cd.compra)}</td>
+      <td class="last-val">${fmtNum(cd.ultimo||cd.cierre)}</td>
+      <td class="ask">${fmtNum(cd.venta)}</td>
+      <td class="neu" style="font-size:11px;">${viCpct}</td>
+      <td>${varBadge(cd.var_pct != null ? cd.var_pct+'%' : null)}</td>
+      <td style="color:${gC&&gC.delta>0?'#22c55e':'#606070'};font-size:11px;">${gC?gC.delta.toFixed(3):'—'}</td>
+      <td style="color:#a0c4ff;font-size:11px;">${gC?gC.gamma.toFixed(4):'—'}</td>
+      <td style="color:${gC&&gC.theta<0?'#ef4444':'#22c55e'};font-size:11px;">${gC?gC.theta.toFixed(2):'—'}</td>
+      <td style="color:#f59e0b;font-size:11px;">${gC?gC.vega.toFixed(2):'—'}</td>
+      <td style="color:#505060;font-size:11px;">—</td></tr>`;
+
+    strikesH += `<tr class="${atm?'row-atm':''}"><td style="font-weight:700;font-size:12px;color:${atm?cfg.color:'#c0c0c0'};text-align:center;">${K.toLocaleString('es-AR')}</td></tr>`;
+
+    putsH += `<tr class="${rowP}" style="cursor:pointer;" onclick="agregarDesdeChain('P',${K},${ld.put||0})">
+      <td>${tickerP}${atmB}</td>
+      <td class="bid">${fmtNum(pd.compra)}</td>
+      <td class="last-val">${fmtNum(pd.ultimo||pd.cierre)}</td>
+      <td class="ask">${fmtNum(pd.venta)}</td>
+      <td class="neu" style="font-size:11px;">${viPpct}</td>
+      <td>${varBadge(pd.var_pct != null ? pd.var_pct+'%' : null)}</td>
+      <td style="color:${gP&&gP.delta<0?'#ef4444':'#606070'};font-size:11px;">${gP?gP.delta.toFixed(3):'—'}</td>
+      <td style="color:#a0c4ff;font-size:11px;">${gP?gP.gamma.toFixed(4):'—'}</td>
+      <td style="color:${gP&&gP.theta<0?'#ef4444':'#22c55e'};font-size:11px;">${gP?gP.theta.toFixed(2):'—'}</td>
+      <td style="color:#f59e0b;font-size:11px;">${gP?gP.vega.toFixed(2):'—'}</td>
+      <td style="color:#505060;font-size:11px;">—</td></tr>`;
+  });
+
+  document.getElementById('calls-body').innerHTML = callsH;
+  document.getElementById('puts-body').innerHTML = putsH;
+  document.getElementById('strikes-body').innerHTML = strikesH;
+  renderSmile();
+}
+
 
 // Render operaciones on load
 renderOperaciones();
