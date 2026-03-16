@@ -254,6 +254,9 @@
       <button class="nav-tab" onclick="showTab('volatility',this)">Volatility</button>
       <button class="nav-tab" onclick="showTab('posicion',this)">Mi Posición</button>
       <button class="nav-tab" onclick="showTab('analytics',this)">Analytics</button>
+      <button class="nav-tab" onclick="showTab('historico',this)">Histórico</button>
+      <button class="nav-tab" onclick="showTab('mariposa',this)">Mariposa</button>
+      <button class="nav-tab" onclick="showTab('precio-prom',this)">Precio Prom</button>
     </div>
     <div class="header-right">
       <div class="stat-block">
@@ -559,6 +562,155 @@
     </div>
   </div>
 
+  <!-- ══ HISTÓRICO ══════════════════════════════════════════════════════════ -->
+  <div id="tab-historico" class="tab-content">
+    <div style="padding:4px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+        <button onclick="limpiarHistorico()" style="padding:6px 12px;background:none;color:#ef4444;border:1px solid #ef4444;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:11px;">Limpiar historial</button>
+        <span style="font-size:11px;color:var(--muted);font-family:var(--font);">Se registra automáticamente al cargar datos cada sesión</span>
+        <span style="font-size:11px;color:var(--muted);font-family:var(--font);" id="hist-count"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div class="card" style="padding:12px;">
+          <div class="chart-title">IV Promedio — histórico</div>
+          <canvas id="hist-vi-chart" height="110"></canvas>
+        </div>
+        <div class="card" style="padding:12px;">
+          <div class="chart-title">Straddle ATM — histórico</div>
+          <canvas id="hist-straddle-chart" height="110"></canvas>
+        </div>
+        <div class="card" style="padding:12px;">
+          <div class="chart-title">RC (Put/Call IV) — histórico</div>
+          <canvas id="hist-rc-chart" height="110"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" style="color:var(--tk-color);">Sesiones registradas</span>
+          <span class="card-sub">IV ATM Call/Put · Straddle · Ratio RC</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr>
+              <th style="text-align:left;">Fecha</th><th>Spot</th>
+              <th>IV Call ATM</th><th>IV Put ATM</th><th>IV Prom</th>
+              <th>RC (P/C)</th><th>Straddle</th><th>Señal</th>
+            </tr></thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MARIPOSA ═══════════════════════════════════════════════════════════ -->
+  <div id="tab-mariposa" class="tab-content">
+    <div style="padding:4px;">
+      <div style="display:grid;grid-template-columns:400px 1fr;gap:12px;align-items:start;">
+        <div>
+          <div class="payoff-panel">
+            <div class="payoff-panel-header">
+              <div class="payoff-panel-title">Generador de Mariposa</div>
+              <div style="display:flex;gap:6px;">
+                <select id="mar-tipo" onchange="calcularMariposa()" style="padding:4px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:var(--font);font-size:11px;font-weight:700;">
+                  <option value="C">CALL</option><option value="P">PUT</option>
+                </select>
+                <button onclick="autoPopularMariposa()" style="padding:4px 10px;background:var(--tk-color);color:#fff;border:none;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);">Auto ATM</button>
+              </div>
+            </div>
+            <div style="padding:12px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+                <div><div class="pata-label" style="margin-bottom:3px;">Strike Bajo (K1)</div><input type="number" id="mar-k1" placeholder="—" oninput="calcularMariposa()"></div>
+                <div><div class="pata-label" style="margin-bottom:3px;">Strike Medio (K2)</div><input type="number" id="mar-k2" placeholder="—" oninput="calcularMariposa()"></div>
+                <div><div class="pata-label" style="margin-bottom:3px;">Strike Alto (K3)</div><input type="number" id="mar-k3" placeholder="—" oninput="calcularMariposa()"></div>
+              </div>
+              <div style="background:var(--bg3);border-radius:4px;padding:10px;margin-bottom:10px;">
+                <div class="pata-label" style="margin-bottom:6px;">Primas bid (auto desde cadena · editable)</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+                  <div><div class="pata-label" style="color:#606070;margin-bottom:2px;font-size:9px;">K1 bid</div><input type="number" id="mar-p1" placeholder="—" oninput="calcularMariposa()" style="text-align:center;"></div>
+                  <div><div class="pata-label" style="color:#606070;margin-bottom:2px;font-size:9px;">K2 bid</div><input type="number" id="mar-p2" placeholder="—" oninput="calcularMariposa()" style="text-align:center;"></div>
+                  <div><div class="pata-label" style="color:#606070;margin-bottom:2px;font-size:9px;">K3 bid</div><input type="number" id="mar-p3" placeholder="—" oninput="calcularMariposa()" style="text-align:center;"></div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div><div class="pata-label" style="margin-bottom:3px;">Contratos</div><input type="number" id="mar-cant" value="1" min="1" oninput="calcularMariposa()"></div>
+                <div style="padding-top:18px;font-family:var(--font);font-size:11px;color:#606070;">
+                  Estrategia: <b id="mar-tipo-label" style="color:var(--tk-color);">Mariposa Call</b>
+                </div>
+              </div>
+            </div>
+            <div class="payoff-stats">
+              <div class="payoff-stat"><div class="payoff-stat-label">Costo Bruto</div><div class="payoff-stat-val" id="mar-costo-bruto" style="color:var(--negative);">—</div></div>
+              <div class="payoff-stat"><div class="payoff-stat-label">Neto c/comisión</div><div class="payoff-stat-val" id="mar-costo-neto" style="color:var(--negative);">—</div></div>
+              <div class="payoff-stat"><div class="payoff-stat-label">Ganancia máx</div><div class="payoff-stat-val" id="mar-gan-max" style="color:var(--positive);">—</div></div>
+              <div class="payoff-stat"><div class="payoff-stat-label">Ratio G/C</div><div class="payoff-stat-val" id="mar-ratio">—</div></div>
+            </div>
+            <div style="padding:8px 12px;border-top:1px solid var(--border);font-family:var(--font);font-size:11px;color:#606070;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div>BE bajo: <b id="mar-be-low" style="color:#a0c4ff;">—</b></div>
+                <div>BE alto: <b id="mar-be-high" style="color:#a0c4ff;">—</b></div>
+              </div>
+              <button onclick="enviarMariposaAlBuilder()" style="width:100%;padding:7px;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);">📋 Enviar al Payoff Builder</button>
+            </div>
+          </div>
+        </div>
+        <div class="dark-panel">
+          <div class="chart-title">Payoff al vencimiento</div>
+          <canvas id="mar-payoff-chart" height="220"></canvas>
+          <div style="margin-top:14px;" id="mar-tabla-escenarios"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PRECIO PROMEDIO ════════════════════════════════════════════════════ -->
+  <div id="tab-precio-prom" class="tab-content">
+    <div style="padding:4px;">
+      <div style="display:grid;grid-template-columns:440px 1fr;gap:12px;align-items:start;">
+        <div>
+          <div class="payoff-panel">
+            <div class="payoff-panel-header">
+              <div class="payoff-panel-title">Calculadora de Precio Promedio</div>
+            </div>
+            <div style="padding:12px;">
+              <div class="pata-label" style="margin-bottom:5px;">Pegá las operaciones (una por línea):</div>
+              <div style="font-size:10px;color:#505060;font-family:var(--font);margin-bottom:6px;">Formatos aceptados: <code style="color:#a0c4ff;">CANT PRIMA</code> · <code style="color:#a0c4ff;">CANT/STRIKE/PRIMA</code> · <code style="color:#a0c4ff;">CANT,PRIMA</code></div>
+              <textarea id="prom-input" rows="8" oninput="calcularPrecioPromedio()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:8px;color:var(--text);font-family:monospace;font-size:13px;resize:vertical;" placeholder="1 290&#10;2 310&#10;1 285&#10;o bien:&#10;1/6374/290&#10;2/6200/310"></textarea>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+                <div>
+                  <div class="pata-label" style="margin-bottom:3px;">Comisión (%)</div>
+                  <input type="number" id="prom-comision" value="0.5" step="0.1" min="0" oninput="calcularPrecioPromedio()">
+                </div>
+                <div>
+                  <div class="pata-label" style="margin-bottom:3px;">Acciones/contrato</div>
+                  <input type="number" id="prom-acciones" value="100" oninput="calcularPrecioPromedio()">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="payoff-panel">
+            <div class="payoff-panel-header"><div class="payoff-panel-title">Resultado</div></div>
+            <div class="payoff-stats" style="grid-template-columns:1fr 1fr;">
+              <div class="payoff-stat"><div class="payoff-stat-label">Prima Promedio</div><div class="payoff-stat-val" id="prom-prima-prom" style="color:var(--tk-color);font-size:22px;">—</div></div>
+              <div class="payoff-stat"><div class="payoff-stat-label">Cant. Total</div><div class="payoff-stat-val" id="prom-cant-total">—</div></div>
+              <div class="payoff-stat"><div class="payoff-stat-label">Costo Total c/com</div><div class="payoff-stat-val" id="prom-costo-total" style="color:var(--negative);">—</div></div>
+              <div class="payoff-stat"><div class="payoff-stat-label">Comisión (c/IVA)</div><div class="payoff-stat-val" id="prom-comision-total" style="color:#f59e0b;">—</div></div>
+            </div>
+            <div style="padding:10px 12px;">
+              <div id="prom-detalle" style="font-family:var(--font);font-size:12px;color:#606070;"></div>
+            </div>
+          </div>
+          <div class="payoff-panel" style="margin-top:10px;padding:12px;">
+            <div class="payoff-panel-title" style="margin-bottom:8px;">Escenarios de salida</div>
+            <div id="prom-escenarios" style="font-family:var(--font);font-size:12px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -740,7 +892,7 @@ function render(rows) {
     if(strike&&!isNaN(K_num)&&K_num>0&&!strikesDisponibles.includes(K_num)){
       strikesDisponibles.push(K_num);
       const pVI=s=>{if(!s||s.trim()===''||s.trim()==='-')return null;const n=parseFloat(s.replace('%','').replace(',','.').trim());if(isNaN(n)||n<=0)return null;return n>1?n/100:n;};
-      strikeLast[K_num]={call:parseFloat(r[3])||null,put:parseFloat(r[10])||null,viCall:pVI(r[1]),viPut:pVI(r[8])};
+      strikeLast[K_num]={call:parseFloat(r[3])||null,put:parseFloat(r[10])||null,viCall:pVI(r[1]),viPut:pVI(r[8]),bidCall:parseFloat(r[2])||null,bidPut:parseFloat(r[9])||null};
     }
     const atm=isATM(strike);
     const K=K_num,T=(diasVto||37)/365,rf=Math.log(1+0.40);
@@ -775,7 +927,7 @@ function render(rows) {
   document.getElementById('calls-body').innerHTML=callsH;
   document.getElementById('puts-body').innerHTML=putsH;
   document.getElementById('strikes-body').innerHTML=strikesH;
-  renderSmile(); sincronizarSliders();
+  renderSmile(); sincronizarSliders(); saveHistoricoSesion();
 
   let bull='',ratio='',ratio2='',ratio3='',mar='',mar1='',mar2='';
   let bear='',pr='',pr2='',pr3='',pm='',pm1='',pm2='',lanz='',sint='';
@@ -823,8 +975,10 @@ function showTab(name,btn){
   btn.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='analytics')renderAnalytics();
-  if(name==='posicion'){renderPosicionesAbiertas();}
+  if(name==='posicion')renderPosicionesAbiertas();
   if(name==='volatility')renderVolatilityDashboard();
+  if(name==='historico')renderHistorico();
+  if(name==='mariposa')autoPopularMariposa();
 }
 
 // ─── BLACK-SCHOLES ────────────────────────────────────────────────────────────
@@ -1081,15 +1235,19 @@ function agregarDesdeChain(tipo,strike,last){
 
 // ─── VOLATILITY SMILE ─────────────────────────────────────────────────────────
 let smileChart=null,smileChart2=null,viHistChart=null;
+function _smileSpotPlugin(spotIdx){return{id:'smileSP',afterDraw(c){if(spotIdx<0)return;const{ctx:cx,chartArea:a,scales:sc}=c;const x=sc.x.getPixelForValue(spotIdx);cx.save();cx.setLineDash([5,3]);cx.strokeStyle='#f59e0b';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x,a.top);cx.lineTo(x,a.bottom);cx.stroke();cx.fillStyle='#f59e0b';cx.font='bold 10px Calibri,Arial';cx.fillText('SPOT',x+4,a.top+12);cx.restore();}};}
+
 function renderSmile(){
   const ctx=document.getElementById('smile-chart')?.getContext('2d');
   const skewEl=document.getElementById('smile-skew');
   if(!ctx||!strikesDisponibles.length)return;
   const strikes=[...strikesDisponibles].sort((a,b)=>a-b);
-  const viCalls=strikes.map(k=>{const vi=strikeLast[k]?.viCall;return vi?vi*100:null;});
-  const viPuts=strikes.map(k=>{const vi=strikeLast[k]?.viPut;return vi?vi*100:null;});
+  // Filtrar bid=0: evita IV falsa de opciones ilíquidas
+  const viCalls=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidCall'in ld&&!ld.bidCall)return null;const vi=ld?.viCall;return vi?vi*100:null;});
+  const viPuts=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidPut'in ld&&!ld.bidPut)return null;const vi=ld?.viPut;return vi?vi*100:null;});
+  const spotIdx=spotGGAL?strikes.reduce((bi,k,i)=>Math.abs(k-spotGGAL)<Math.abs(strikes[bi]-spotGGAL)?i:bi,0):-1;
   if(smileChart)smileChart.destroy();
-  smileChart=new Chart(ctx,{type:'line',
+  smileChart=new Chart(ctx,{type:'line',plugins:[_smileSpotPlugin(spotIdx)],
     data:{labels:strikes.map(k=>k.toLocaleString('es-AR')),datasets:[
       {label:'VI Calls',data:viCalls,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.08)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
       {label:'VI Puts',data:viPuts,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false}
@@ -1127,9 +1285,12 @@ function renderVolatilityDashboard(){
   const viPuts=strikes.map(k=>strikeLast[k]?.viPut?strikeLast[k].viPut*100:null);
   const ctx2=document.getElementById('smile-chart2')?.getContext('2d');
   if(ctx2){if(smileChart2)smileChart2.destroy();
-    smileChart2=new Chart(ctx2,{type:'line',data:{labels:strikes.map(k=>k.toLocaleString('es-AR')),datasets:[
-      {label:'VI Calls',data:viCalls,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
-      {label:'VI Puts',data:viPuts,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false}
+    const viCalls2=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidCall'in ld&&!ld.bidCall)return null;const vi=ld?.viCall;return vi?vi*100:null;});
+    const viPuts2=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidPut'in ld&&!ld.bidPut)return null;const vi=ld?.viPut;return vi?vi*100:null;});
+    const spotIdx2=spotGGAL?strikes.reduce((bi,k,i)=>Math.abs(k-spotGGAL)<Math.abs(strikes[bi]-spotGGAL)?i:bi,0):-1;
+    smileChart2=new Chart(ctx2,{type:'line',plugins:[_smileSpotPlugin(spotIdx2)],data:{labels:strikes.map(k=>k.toLocaleString('es-AR')),datasets:[
+      {label:'VI Calls',data:viCalls2,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
+      {label:'VI Puts',data:viPuts2,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false}
     ]},options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#606070',font:{family:'Calibri,Arial',size:11}}}},
       scales:{x:{ticks:{maxTicksLimit:8,color:'#606070',font:{family:'Calibri,Arial',size:10}},grid:{color:'#1a1a1a'}},y:{ticks:{color:'#606070',font:{family:'Calibri,Arial',size:10},callback:v=>v+'%'},grid:{color:'#1a1a1a'}}}}
     });}
@@ -1340,6 +1501,8 @@ function cargarDatosEmbebidos(ticker) {
       put: s.put?.ultimo || s.put?.cierre || null,
       viCall: viC && viC > 1 ? viC/100 : viC,
       viPut: viP && viP > 1 ? viP/100 : viP,
+      bidCall: s.call?.compra || null,
+      bidPut: s.put?.compra || null,
       callData: s.call,
       putData: s.put
     };
@@ -1399,8 +1562,250 @@ function cargarDatosEmbebidos(ticker) {
   document.getElementById('puts-body').innerHTML = putsH;
   document.getElementById('strikes-body').innerHTML = strikesH;
   renderSmile();
+  saveHistoricoSesion();
 }
 
+
+// ─── HISTÓRICO DE SESIONES ────────────────────────────────────────────────────
+function saveHistoricoSesion(){
+  if(!spotGGAL||!strikesDisponibles.length)return;
+  const hoy=new Date().toISOString().split('T')[0];
+  const hist=JSON.parse(localStorage.getItem('hist_sesion_'+currentTicker)||'[]');
+  const atmK=strikesDisponibles.reduce((p,c)=>Math.abs(c-spotGGAL)<Math.abs(p-spotGGAL)?c:p,strikesDisponibles[0]);
+  const ld=strikeLast[atmK];if(!ld)return;
+  const ivC=(ld.viCall||0)*100,ivP=(ld.viPut||0)*100;
+  if(!ivC&&!ivP)return;
+  const ivProm=ivC&&ivP?(ivC+ivP)/2:ivC||ivP;
+  const rc=ivC>0?ivP/ivC:null;
+  const straddle=(ld.call||0)+(ld.put||0);
+  const bullBear=ivC>ivP?'CALL>PUT':ivC<ivP?'PUT>CALL':'IGUAL';
+  const entry={fecha:hoy,spot:spotGGAL,iv_call:ivC,iv_put:ivP,iv_prom:ivProm,rc,straddle,bull_bear:bullBear};
+  const idx=hist.findIndex(h=>h.fecha===hoy);
+  if(idx>=0)hist[idx]=entry;else hist.push(entry);
+  if(hist.length>60)hist.shift();
+  localStorage.setItem('hist_sesion_'+currentTicker,JSON.stringify(hist));
+}
+
+let histViChart=null,histStraddleChart=null,histRcChart=null;
+function renderHistorico(){
+  const hist=JSON.parse(localStorage.getItem('hist_sesion_'+currentTicker)||'[]').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const countEl=document.getElementById('hist-count');if(countEl)countEl.textContent='· '+hist.length+' registros';
+  const tbody=document.getElementById('hist-tbody');
+  if(tbody){
+    if(!hist.length){tbody.innerHTML='<tr><td colspan="8" style="padding:24px;text-align:center;color:#404040;font-family:var(--font);">Sin datos aún — cargá opciones para empezar a registrar.</td></tr>';}
+    else{tbody.innerHTML=hist.map(h=>{
+      const rcColor=!h.rc?'#606070':h.rc>1.1?'#ef4444':h.rc<0.9?'#22c55e':'#a0c4ff';
+      const signalColor=h.bull_bear==='PUT>CALL'?'#ef4444':h.bull_bear==='CALL>PUT'?'#22c55e':'#606070';
+      return`<tr style="border-bottom:1px solid #1a1a1a;">
+        <td style="color:#606070;font-family:var(--font);font-size:12px;">${h.fecha}</td>
+        <td style="text-align:right;font-family:var(--font);font-size:12px;color:#c0c0d0;">$${fmtARS(h.spot)}</td>
+        <td style="text-align:right;color:#22c55e;font-family:var(--font);font-size:12px;">${h.iv_call?.toFixed(1)||'—'}%</td>
+        <td style="text-align:right;color:#ef4444;font-family:var(--font);font-size:12px;">${h.iv_put?.toFixed(1)||'—'}%</td>
+        <td style="text-align:right;color:#a0c4ff;font-family:var(--font);font-size:12px;">${h.iv_prom?.toFixed(1)||'—'}%</td>
+        <td style="text-align:right;color:${rcColor};font-family:var(--font);font-size:12px;font-weight:700;">${h.rc?.toFixed(3)||'—'}</td>
+        <td style="text-align:right;font-family:var(--font);font-size:12px;">$${h.straddle?fmtARS(h.straddle):'—'}</td>
+        <td style="text-align:right;color:${signalColor};font-family:var(--font);font-size:11px;font-weight:700;">${h.bull_bear||'—'}</td>
+      </tr>`;
+    }).join('');}
+  }
+  if(hist.length<2)return;
+  const sorted=[...hist].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const labels=sorted.map(h=>h.fecha.slice(5));
+  const mkChart=(id,holder,datasets,yCb)=>{
+    const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;
+    if(holder.v)holder.v.destroy();
+    holder.v=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,animation:false,
+      plugins:{legend:{display:datasets.length>1,labels:{color:'#606070',font:{size:9},boxWidth:10}}},
+      scales:{x:{ticks:{maxTicksLimit:6,color:'#505060',font:{size:9}},grid:{color:'#1a1a1a'}},
+              y:{ticks:{color:'#505060',font:{size:9},callback:yCb||undefined},grid:{color:'#1a1a1a'}}}}});
+  };
+  const hVC={},hSC={},hRC={};
+  mkChart('hist-vi-chart',hVC,[
+    {label:'IV Call',data:sorted.map(h=>h.iv_call||null),borderColor:'#22c55e',backgroundColor:'transparent',tension:0.3,pointRadius:2,borderWidth:2,spanGaps:false},
+    {label:'IV Put',data:sorted.map(h=>h.iv_put||null),borderColor:'#ef4444',backgroundColor:'transparent',tension:0.3,pointRadius:2,borderWidth:2,spanGaps:false},
+    {label:'IV Prom',data:sorted.map(h=>h.iv_prom||null),borderColor:'#a0c4ff',backgroundColor:'rgba(160,196,255,0.06)',tension:0.3,pointRadius:0,borderWidth:1.5,spanGaps:false}
+  ],v=>v+'%');
+  if(hVC.v){histViChart=hVC.v;}
+  mkChart('hist-straddle-chart',hSC,[
+    {label:'Straddle',data:sorted.map(h=>h.straddle||null),borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.06)',tension:0.3,pointRadius:2,borderWidth:2,spanGaps:false}
+  ],v=>'$'+fmtARS(v));
+  if(hSC.v)histStraddleChart=hSC.v;
+  mkChart('hist-rc-chart',hRC,[
+    {label:'RC',data:sorted.map(h=>h.rc||null),borderColor:'#c084fc',backgroundColor:'rgba(192,132,252,0.06)',tension:0.3,pointRadius:2,borderWidth:2,spanGaps:false}
+  ]);
+  if(hRC.v)histRcChart=hRC.v;
+}
+function limpiarHistorico(){
+  if(confirm('¿Limpiar todo el historial de '+currentTicker+'?')){localStorage.removeItem('hist_sesion_'+currentTicker);renderHistorico();}
+}
+
+// ─── MARIPOSA ─────────────────────────────────────────────────────────────────
+let mariposasChart=null;
+function autoPopularMariposa(){
+  if(!strikesDisponibles.length||!spotGGAL){return;}
+  const sorted=[...strikesDisponibles].sort((a,b)=>a-b);
+  const atmIdx=sorted.reduce((bi,k,i)=>Math.abs(k-spotGGAL)<Math.abs(sorted[bi]-spotGGAL)?i:bi,0);
+  const kLow=sorted[Math.max(0,atmIdx-1)],kMid=sorted[atmIdx],kHigh=sorted[Math.min(sorted.length-1,atmIdx+1)];
+  document.getElementById('mar-k1').value=kLow;
+  document.getElementById('mar-k2').value=kMid;
+  document.getElementById('mar-k3').value=kHigh;
+  const tipo=document.getElementById('mar-tipo').value;
+  const get=(k)=>tipo==='C'?(strikeLast[k]?.bidCall||strikeLast[k]?.call||null):(strikeLast[k]?.bidPut||strikeLast[k]?.put||null);
+  const p1=get(kLow),p2=get(kMid),p3=get(kHigh);
+  if(p1!=null)document.getElementById('mar-p1').value=p1;
+  if(p2!=null)document.getElementById('mar-p2').value=p2;
+  if(p3!=null)document.getElementById('mar-p3').value=p3;
+  calcularMariposa();
+}
+function calcularMariposa(){
+  const k1=parseFloat(document.getElementById('mar-k1').value);
+  const k2=parseFloat(document.getElementById('mar-k2').value);
+  const k3=parseFloat(document.getElementById('mar-k3').value);
+  const p1=parseFloat(document.getElementById('mar-p1').value);
+  const p2=parseFloat(document.getElementById('mar-p2').value);
+  const p3=parseFloat(document.getElementById('mar-p3').value);
+  const cant=parseInt(document.getElementById('mar-cant').value)||1;
+  const tipo=document.getElementById('mar-tipo').value;
+  const lbl=document.getElementById('mar-tipo-label');if(lbl)lbl.textContent='Mariposa '+(tipo==='C'?'Call':'Put');
+  if(!k1||!k2||!k3||isNaN(p1)||isNaN(p2)||isNaN(p3))return;
+  const costoBruto=(p1+p3-2*p2)*cant*100;
+  const comision=Math.abs(costoBruto)*0.005*1.21;
+  const costoNeto=costoBruto+comision;
+  const dist=Math.min(k2-k1,k3-k2);
+  const ganMax=(dist-(p1+p3-2*p2))*cant*100;
+  const ratio=costoBruto>0?(ganMax/costoBruto).toFixed(2):'∞';
+  const beL=k1+(p1+p3-2*p2),beH=k3-(p1+p3-2*p2);
+  document.getElementById('mar-costo-bruto').textContent='$'+fmtARS(costoBruto);
+  document.getElementById('mar-costo-neto').textContent='$'+fmtARS(costoNeto);
+  document.getElementById('mar-gan-max').textContent='$'+fmtARS(ganMax);
+  document.getElementById('mar-ratio').textContent=ratio+':1';
+  document.getElementById('mar-be-low').textContent='$'+fmtARS(beL);
+  document.getElementById('mar-be-high').textContent='$'+fmtARS(beH);
+  const optSize=100,sMin=k1*0.85,sMax=k3*1.15,steps=200;
+  const prices=[],payoffs=[];
+  for(let i=0;i<=steps;i++){
+    const S=sMin+(sMax-sMin)*i/steps;prices.push(S.toFixed(0));
+    const pnl=tipo==='C'
+      ?(Math.max(S-k1,0)-2*Math.max(S-k2,0)+Math.max(S-k3,0)-(p1-2*p2+p3))*cant*optSize
+      :(Math.max(k1-S,0)-2*Math.max(k2-S,0)+Math.max(k3-S,0)-(p1-2*p2+p3))*cant*optSize;
+    payoffs.push(pnl);
+  }
+  const posData=payoffs.map(v=>v>=0?v:null),negData=payoffs.map(v=>v<0?v:null);
+  const spotIdx=spotGGAL?prices.findIndex(p=>parseFloat(p)>=spotGGAL):-1;
+  const sPlug={id:'sp',afterDraw(c){if(spotIdx<0)return;const{ctx:cx,chartArea:a,scales:sc}=c;const x=sc.x.getPixelForValue(spotIdx);cx.save();cx.setLineDash([4,4]);cx.strokeStyle='#f59e0b';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x,a.top);cx.lineTo(x,a.bottom);cx.stroke();cx.restore();}};
+  const ctx=document.getElementById('mar-payoff-chart')?.getContext('2d');
+  if(ctx){if(mariposasChart)mariposasChart.destroy();
+    mariposasChart=new Chart(ctx,{type:'line',plugins:[sPlug],
+      data:{labels:prices,datasets:[
+        {label:'Ganancia',data:posData,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.1)',fill:true,tension:0.1,pointRadius:0,borderWidth:2,spanGaps:false},
+        {label:'Pérdida',data:negData,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.1,pointRadius:0,borderWidth:2,spanGaps:false}
+      ]},
+      options:{responsive:true,animation:false,
+        plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#0d0d18',bodyColor:'#fff',
+          callbacks:{title:c=>`${currentTicker}: $${c[0].label}`,label:c=>c.raw!==null?`PnL: $${fmtARS(c.raw)}`:null,filter:i=>i.raw!==null}}},
+        scales:{x:{ticks:{maxTicksLimit:8,color:'#505060',font:{size:10}},grid:{color:'#1a1a2a'}},
+                y:{ticks:{color:'#505060',font:{size:10},callback:v=>'$'+fmtARS(v)},grid:{color:'#1a1a2a'}}}}
+    });}
+  const puntos=[k1*0.95,beL,k1,(k1+k2)/2,k2,(k2+k3)/2,k3,beH,k3*1.05];
+  const escEl=document.getElementById('mar-tabla-escenarios');
+  if(escEl){escEl.innerHTML=`<div class="chart-title" style="margin-top:14px;">Escenarios clave</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:var(--font);">
+    <thead><tr style="border-bottom:1px solid #1a1a2a;"><th style="padding:3px 6px;text-align:left;color:#505060;">Precio</th><th style="padding:3px 6px;text-align:right;color:#505060;">P&L</th></tr></thead>
+    <tbody>${puntos.map(S=>{
+      const pnl=tipo==='C'
+        ?(Math.max(S-k1,0)-2*Math.max(S-k2,0)+Math.max(S-k3,0)-(p1-2*p2+p3))*cant*optSize
+        :(Math.max(k1-S,0)-2*Math.max(k2-S,0)+Math.max(k3-S,0)-(p1-2*p2+p3))*cant*optSize;
+      return`<tr style="border-bottom:1px solid #12121e;"><td style="padding:2px 6px;">$${fmtARS(S)}</td>
+        <td style="padding:2px 6px;text-align:right;font-weight:700;color:${pnl>=0?'#22c55e':'#ef4444'};">$${fmtARS(pnl)}</td></tr>`;
+    }).join('')}</tbody></table>`;
+  }
+}
+function enviarMariposaAlBuilder(){
+  const k1=parseFloat(document.getElementById('mar-k1').value);
+  const k2=parseFloat(document.getElementById('mar-k2').value);
+  const k3=parseFloat(document.getElementById('mar-k3').value);
+  const p1=parseFloat(document.getElementById('mar-p1').value)||0;
+  const p2=parseFloat(document.getElementById('mar-p2').value)||0;
+  const p3=parseFloat(document.getElementById('mar-p3').value)||0;
+  const tipo=document.getElementById('mar-tipo').value;
+  if(!k1||!k2||!k3)return;
+  patas=[];pataId=0;
+  patas.push({id:pataId++,tipo,strike:k1,prima:p1,last:strikeLast[k1]?.[tipo==='C'?'call':'put']||'',cant:1});
+  patas.push({id:pataId++,tipo,strike:k2,prima:p2,last:strikeLast[k2]?.[tipo==='C'?'call':'put']||'',cant:-2});
+  patas.push({id:pataId++,tipo,strike:k3,prima:p3,last:strikeLast[k3]?.[tipo==='C'?'call':'put']||'',cant:1});
+  const payoffBtn=document.querySelector('[onclick*="payoff"]');
+  if(payoffBtn)showTab('payoff',payoffBtn);
+  renderPatas();
+  const t=document.createElement('div');t.textContent='✓ Mariposa enviada al Builder';
+  t.style.cssText='position:fixed;bottom:20px;right:20px;background:#22c55e;color:#000;padding:9px 16px;border-radius:4px;font-family:var(--font);font-weight:700;z-index:9999;font-size:12px;';
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+
+// ─── PRECIO PROMEDIO ──────────────────────────────────────────────────────────
+function calcularPrecioPromedio(){
+  const raw=document.getElementById('prom-input').value.trim();
+  if(!raw)return;
+  const comPct=parseFloat(document.getElementById('prom-comision').value)/100||0.005;
+  const acciones=parseInt(document.getElementById('prom-acciones').value)||100;
+  const ops=[];
+  for(const linea of raw.split('\n')){
+    const parts=linea.trim().split(/[\s,\/|]+/).filter(p=>p.trim());
+    const nums=parts.map(p=>parseFloat(p.replace(/[^0-9.-]/g,''))).filter(n=>!isNaN(n)&&n>0);
+    if(nums.length>=2){
+      const cant=nums[0],prima=nums[nums.length-1];
+      ops.push({cant,prima,strike:nums.length>=3?nums[1]:null});
+    }
+  }
+  if(!ops.length){document.getElementById('prom-detalle').textContent='Sin datos válidos. Verificá el formato.';return;}
+  const cantTotal=ops.reduce((s,o)=>s+o.cant,0);
+  const promPonderado=ops.reduce((s,o)=>s+o.cant*o.prima,0)/cantTotal;
+  const costoSinCom=promPonderado*cantTotal*acciones;
+  const comisionTotal=costoSinCom*comPct*1.21;
+  const costoTotal=costoSinCom+comisionTotal;
+  const promConCom=costoTotal/(cantTotal*acciones);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('prom-prima-prom','$'+fmtARS(promPonderado));
+  set('prom-cant-total',cantTotal+' contratos');
+  set('prom-costo-total','$'+fmtARS(costoTotal));
+  set('prom-comision-total','$'+fmtARS(comisionTotal));
+  const hasStrike=ops.some(o=>o.strike);
+  const detEl=document.getElementById('prom-detalle');
+  if(detEl){detEl.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <thead><tr style="border-bottom:1px solid #1a1a1a;"><th style="padding:3px 6px;text-align:left;color:#505060;">Cant</th>
+    ${hasStrike?'<th style="text-align:right;color:#505060;padding:3px 6px;">Strike</th>':''}
+    <th style="text-align:right;color:#505060;padding:3px 6px;">Prima</th>
+    <th style="text-align:right;color:#505060;padding:3px 6px;">Peso</th></tr></thead>
+    <tbody>${ops.map(o=>{const peso=(o.cant/cantTotal*100).toFixed(1);
+      return`<tr style="border-bottom:1px solid #1a1a1a;">
+        <td style="padding:2px 6px;color:#a0c4ff;">${o.cant}</td>
+        ${hasStrike?`<td style="padding:2px 6px;text-align:right;color:#606070;">${o.strike?'$'+fmtARS(o.strike):'—'}</td>`:''}
+        <td style="padding:2px 6px;text-align:right;">$${fmtARS(o.prima)}</td>
+        <td style="padding:2px 6px;text-align:right;color:#606070;">${peso}%</td></tr>`;
+    }).join('')}
+    <tr style="border-top:1px solid #2a2a2a;font-weight:700;">
+      <td style="padding:4px 6px;color:#f59e0b;">${cantTotal}</td>
+      ${hasStrike?'<td></td>':''}
+      <td style="padding:4px 6px;text-align:right;color:var(--tk-color);">$${fmtARS(promPonderado)}</td>
+      <td style="padding:4px 6px;text-align:right;color:#606070;">100%</td></tr>
+    </tbody></table>
+    <div style="margin-top:6px;color:#606070;">Prima c/comisión: <b style="color:#a0c4ff;">$${fmtARS(promConCom)}</b> · IVA incluido</div>`;}
+  const escEl=document.getElementById('prom-escenarios');
+  if(escEl){const salidas=[-50,-30,-20,-10,0,10,20,30,50,100];
+    escEl.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <thead><tr style="border-bottom:1px solid #1a1a2a;">
+      <th style="padding:3px 6px;text-align:left;color:#505060;">Var.</th>
+      <th style="text-align:right;color:#505060;padding:3px 6px;">Prima salida</th>
+      <th style="text-align:right;color:#505060;padding:3px 6px;">P&L neto</th>
+    </tr></thead><tbody>${salidas.map(pct=>{
+      const pSalida=promPonderado*(1+pct/100);
+      const pnl=(pSalida-promPonderado)*cantTotal*acciones-comisionTotal;
+      return`<tr style="border-bottom:1px solid #1a1a1a;${pct===0?'background:#0d1800;':''}">
+        <td style="padding:2px 6px;color:${pct<0?'#ef4444':pct>0?'#22c55e':'#a0c4ff'};">${pct>0?'+':''}${pct}%</td>
+        <td style="padding:2px 6px;text-align:right;color:#c0c0d0;">$${fmtARS(pSalida)}</td>
+        <td style="padding:2px 6px;text-align:right;font-weight:700;color:${pnl>=0?'#22c55e':'#ef4444'};">$${fmtARS(pnl)}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;}
+}
 
 // Render operaciones on load
 renderOperaciones();
