@@ -257,6 +257,7 @@
       <button class="nav-tab" onclick="showTab('historico',this)">Histórico</button>
       <button class="nav-tab" onclick="showTab('mariposa',this)">Mariposa</button>
       <button class="nav-tab" onclick="showTab('precio-prom',this)">Precio Prom</button>
+      <button class="nav-tab" onclick="showTab('flujo-gex',this)">Flujo & GEX</button>
     </div>
     <div class="header-right">
       <div class="stat-block">
@@ -587,7 +588,7 @@
       <!-- Gráfico precio GGAL + HV -->
       <div class="card" style="padding:14px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-          <div class="chart-title" style="margin-bottom:0;">Precio GGAL — últimos 9 meses</div>
+          <div class="chart-title" style="margin-bottom:0;" id="hist-precio-title">Precio GGAL — últimos 9 meses</div>
           <div style="display:flex;gap:14px;align-items:center;">
             <span style="font-family:var(--font);font-size:11px;color:#606070;">HV20: <span id="ggal-hv20" style="color:#a0c4ff;font-weight:700;">—</span>%</span>
             <span style="font-family:var(--font);font-size:11px;color:#606070;">HV30: <span id="ggal-hv30" style="color:#c084fc;font-weight:700;">—</span>%</span>
@@ -721,6 +722,82 @@
             <div id="prom-escenarios" style="font-family:var(--font);font-size:12px;"></div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FLUJO & GEX ══════════════════════════════════════════════════════════ -->
+  <div id="tab-flujo-gex" class="tab-content">
+    <div style="padding:4px;">
+      <!-- KPIs row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+        <div class="card" style="padding:12px;text-align:center;">
+          <div style="font-family:var(--font);font-size:10px;color:var(--muted);margin-bottom:4px;">Put/Call Ratio (vol)</div>
+          <div id="gex-pcr" style="font-size:22px;font-weight:700;font-family:var(--font);color:#c084fc;">—</div>
+          <div id="gex-pcr-signal" style="font-size:10px;font-family:var(--font);color:#606070;margin-top:2px;">—</div>
+        </div>
+        <div class="card" style="padding:12px;text-align:center;">
+          <div style="font-family:var(--font);font-size:10px;color:var(--muted);margin-bottom:4px;">GEX Neto (C–P)</div>
+          <div id="gex-neto" style="font-size:22px;font-weight:700;font-family:var(--font);color:#a0c4ff;">—</div>
+          <div id="gex-neto-signal" style="font-size:10px;font-family:var(--font);color:#606070;margin-top:2px;">—</div>
+        </div>
+        <div class="card" style="padding:12px;text-align:center;">
+          <div style="font-family:var(--font);font-size:10px;color:var(--muted);margin-bottom:4px;">Gamma Flip Est.</div>
+          <div id="gex-flip" style="font-size:22px;font-weight:700;font-family:var(--font);color:#f59e0b;">—</div>
+          <div style="font-size:10px;font-family:var(--font);color:#606070;margin-top:2px;">strike pivote</div>
+        </div>
+        <div class="card" style="padding:12px;text-align:center;">
+          <div style="font-family:var(--font);font-size:10px;color:var(--muted);margin-bottom:4px;">Mayor OI Call / Put</div>
+          <div id="gex-wall-c" style="font-size:14px;font-weight:700;font-family:var(--font);color:#22c55e;">—</div>
+          <div id="gex-wall-p" style="font-size:14px;font-weight:700;font-family:var(--font);color:#ef4444;margin-top:2px;">—</div>
+        </div>
+      </div>
+      <!-- Charts row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="card" style="padding:12px;">
+          <div class="chart-title">Open Interest — Calls vs Puts por strike</div>
+          <div style="font-size:10px;color:#404050;font-family:var(--font);margin-bottom:6px;">proxy: vol. negociado × bid (primas activas)</div>
+          <canvas id="gex-oi-chart" height="200"></canvas>
+        </div>
+        <div class="card" style="padding:12px;">
+          <div class="chart-title">GEX por strike (Δ × vol × 100)</div>
+          <div style="font-size:10px;color:#404050;font-family:var(--font);margin-bottom:6px;">Calls (+) absorben movimiento · Puts (–) amplifican</div>
+          <canvas id="gex-gex-chart" height="200"></canvas>
+        </div>
+      </div>
+      <!-- Estructura donut + tabla -->
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:10px;">
+        <div class="card" style="padding:12px;">
+          <div class="chart-title">Estructura de posiciones</div>
+          <canvas id="gex-donut-chart" height="180"></canvas>
+          <div id="gex-donut-legend" style="margin-top:8px;font-family:var(--font);font-size:11px;color:#606070;line-height:1.7;"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" style="color:var(--tk-color);">Cadena por strike</span>
+            <span class="card-sub">OI proxy · GEX · Δ estimado</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr>
+                <th style="text-align:right;">Strike</th>
+                <th style="text-align:right;color:#22c55e;">OI Call</th>
+                <th style="text-align:right;color:#22c55e;">Bid C</th>
+                <th style="text-align:right;color:#22c55e;">IV C%</th>
+                <th style="text-align:right;color:#22c55e;">GEX Call</th>
+                <th style="text-align:right;color:#ef4444;">OI Put</th>
+                <th style="text-align:right;color:#ef4444;">Bid P</th>
+                <th style="text-align:right;color:#ef4444;">IV P%</th>
+                <th style="text-align:right;color:#ef4444;">GEX Put</th>
+                <th style="text-align:right;">GEX Net</th>
+              </tr></thead>
+              <tbody id="gex-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-family:var(--font);font-size:10px;color:#303040;padding:6px 8px;background:#0d0d12;border-radius:4px;">
+        ⚠ OI es proxy desde volumen × bid (no OI real de BYMA). GEX = Δ × OI_proxy × 100. Gamma Flip = strike donde GEX neto cambia de signo.
       </div>
     </div>
   </div>
@@ -993,6 +1070,7 @@ function showTab(name,btn){
   if(name==='volatility')renderVolatilityDashboard();
   if(name==='historico')renderHistorico();
   if(name==='mariposa')autoPopularMariposa();
+  if(name==='flujo-gex')renderFlujoGex();
 }
 
 // ─── BLACK-SCHOLES ────────────────────────────────────────────────────────────
@@ -1456,7 +1534,9 @@ function renderAnalytics(){
 }
 
 
-// ─── HISTORIAL PRECIOS GGAL (cierres reales 2025-06-25 → 2026-03-16) ─────────
+// ─── HISTORIAL PRECIOS — cierres reales BYMA 2025-06-25 → 2026-03-16 ─────────
+window.PAMP_HIST_DATA=[["2025-06-25",3350.0],["2025-06-26",3380.0],["2025-06-27",3390.0],["2025-06-30",3345.0],["2025-07-01",3395.0],["2025-07-02",3500.0],["2025-07-03",3600.0],["2025-07-04",3620.0],["2025-07-07",3545.0],["2025-07-08",3780.0],["2025-07-10",3600.0],["2025-07-11",3495.0],["2025-07-14",3705.0],["2025-07-15",3715.0],["2025-07-16",3590.0],["2025-07-17",3635.0],["2025-07-18",3695.0],["2025-07-21",3585.0],["2025-07-22",3520.0],["2025-07-23",3670.0],["2025-07-24",3780.0],["2025-07-25",3840.0],["2025-07-28",3875.0],["2025-07-29",4070.0],["2025-07-30",4110.0],["2025-07-31",4115.0],["2025-08-01",4065.0],["2025-08-04",4050.0],["2025-08-05",4180.0],["2025-08-06",4385.0],["2025-08-07",4135.0],["2025-08-08",3980.0],["2025-08-11",4000.0],["2025-08-12",4045.0],["2025-08-13",4030.0],["2025-08-14",3910.0],["2025-08-18",3900.0],["2025-08-19",3700.0],["2025-08-20",3715.0],["2025-08-21",3755.0],["2025-08-22",3750.0],["2025-08-25",3610.0],["2025-08-26",3685.0],["2025-08-27",3590.0],["2025-08-28",3675.0],["2025-08-29",3645.0],["2025-09-01",3535.0],["2025-09-02",3610.0],["2025-09-03",3610.0],["2025-09-04",3725.0],["2025-09-05",3760.0],["2025-09-08",3267.5],["2025-09-09",3372.5],["2025-09-10",3580.0],["2025-09-11",3587.5],["2025-09-12",3512.5],["2025-09-15",3545.0],["2025-09-16",3637.5],["2025-09-17",3595.0],["2025-09-18",3507.5],["2025-09-19",3572.5],["2025-09-22",3677.5],["2025-09-23",3680.0],["2025-09-24",3677.5],["2025-09-25",3572.5],["2025-09-26",3637.5],["2025-09-29",3597.5],["2025-09-30",3682.5],["2025-10-01",3660.0],["2025-10-02",3750.0],["2025-10-03",3707.5],["2025-10-06",3680.0],["2025-10-07",3730.0],["2025-10-08",3772.5],["2025-10-09",3825.0],["2025-10-13",3890.0],["2025-10-14",3770.0],["2025-10-15",3857.5],["2025-10-16",3847.5],["2025-10-17",3927.5],["2025-10-20",3770.0],["2025-10-21",3822.5],["2025-10-22",3865.0],["2025-10-23",3892.5],["2025-10-24",3920.0],["2025-10-27",4522.5],["2025-10-28",4620.0],["2025-10-29",4915.0],["2025-10-30",4847.5],["2025-10-31",5155.0],["2025-11-03",5410.0],["2025-11-04",5350.0],["2025-11-05",5270.0],["2025-11-06",5170.0],["2025-11-07",5030.0],["2025-11-10",5175.0],["2025-11-11",5185.0],["2025-11-12",5285.0],["2025-11-13",5145.0],["2025-11-14",5370.0],["2025-11-17",5255.0],["2025-11-18",5325.0],["2025-11-19",5250.0],["2025-11-20",5275.0],["2025-11-21",5155.0],["2025-11-25",5300.0],["2025-11-26",5445.0],["2025-11-27",5415.0],["2025-11-28",5405.0],["2025-12-01",5470.0],["2025-12-02",5430.0],["2025-12-03",5610.0],["2025-12-04",5570.0],["2025-12-05",5455.0],["2025-12-09",5410.0],["2025-12-10",5475.0],["2025-12-11",5445.0],["2025-12-12",5395.0],["2025-12-15",5460.0],["2025-12-16",5470.0],["2025-12-17",5455.0],["2025-12-18",5485.0],["2025-12-19",5495.0],["2025-12-22",5465.0],["2025-12-23",5435.0],["2025-12-24",5480.0],["2025-12-26",5375.0],["2025-12-29",5375.0],["2025-12-30",5260.0],["2026-01-02",5440.0],["2026-01-05",5365.0],["2026-01-06",5235.0],["2026-01-07",5020.0],["2026-01-08",5085.0],["2026-01-09",5065.0],["2026-01-12",5070.0],["2026-01-13",5050.0],["2026-01-14",4935.0],["2026-01-15",4792.5],["2026-01-16",4792.5],["2026-01-19",4795.0],["2026-01-20",4905.0],["2026-01-21",5010.0],["2026-01-22",5035.0],["2026-01-23",5080.0],["2026-01-26",5175.0],["2026-01-27",5365.0],["2026-01-28",5380.0],["2026-01-29",5315.0],["2026-01-30",5215.0],["2026-02-02",5045.0],["2026-02-03",4970.0],["2026-02-04",4962.5],["2026-02-05",4920.0],["2026-02-06",4985.0],["2026-02-09",4975.0],["2026-02-10",5170.0],["2026-02-11",5070.0],["2026-02-12",4850.0],["2026-02-13",4807.5],["2026-02-14",4807.5],["2026-02-15",4807.5],["2026-02-18",4645.0],["2026-02-19",4820.0],["2026-02-20",4772.5],["2026-02-22",4772.5],["2026-02-23",4610.0],["2026-02-24",4710.0],["2026-02-26",4680.0],["2026-02-27",4490.0],["2026-03-01",4490.0],["2026-03-02",4540.0],["2026-03-03",4480.0],["2026-03-04",4400.0],["2026-03-05",4400.0],["2026-03-06",4575.0],["2026-03-10",4775.0],["2026-03-11",4775.0],["2026-03-13",4690.0],["2026-03-16",4680.0]];
+window.YPFD_HIST_DATA=[["2025-06-25",39775.0],["2025-06-26",40200.0],["2025-06-27",40100.0],["2025-06-30",38075.0],["2025-07-01",38950.0],["2025-07-02",39625.0],["2025-07-03",39975.0],["2025-07-04",39975.0],["2025-07-07",39475.0],["2025-07-08",41675.0],["2025-07-10",40475.0],["2025-07-11",39450.0],["2025-07-14",40350.0],["2025-07-15",40475.0],["2025-07-16",39300.0],["2025-07-17",39700.0],["2025-07-18",39925.0],["2025-07-21",39400.0],["2025-07-22",38525.0],["2025-07-23",40975.0],["2025-07-24",41425.0],["2025-07-25",42850.0],["2025-07-28",43175.0],["2025-07-29",45000.0],["2025-07-30",44825.0],["2025-07-31",45575.0],["2025-08-01",45175.0],["2025-08-04",45575.0],["2025-08-05",47125.0],["2025-08-06",48350.0],["2025-08-07",47550.0],["2025-08-08",45725.0],["2025-08-11",45500.0],["2025-08-12",45100.0],["2025-08-13",44800.0],["2025-08-14",42925.0],["2025-08-18",43975.0],["2025-08-19",41775.0],["2025-08-20",41125.0],["2025-08-21",41750.0],["2025-08-22",42500.0],["2025-08-25",41025.0],["2025-08-26",41825.0],["2025-08-27",41200.0],["2025-08-28",41575.0],["2025-08-29",41300.0],["2025-09-01",40450.0],["2025-09-02",41550.0],["2025-09-03",40650.0],["2025-09-04",42525.0],["2025-09-05",42875.0],["2025-09-08",37860.0],["2025-09-09",38600.0],["2025-09-10",41120.0],["2025-09-11",40880.0],["2025-09-12",40200.0],["2025-09-15",40040.0],["2025-09-16",40980.0],["2025-09-17",40840.0],["2025-09-18",38060.0],["2025-09-19",37080.0],["2025-09-22",38880.0],["2025-09-23",39040.0],["2025-09-24",38700.0],["2025-09-25",37600.0],["2025-09-26",38380.0],["2025-09-29",37780.0],["2025-09-30",37380.0],["2025-10-01",37000.0],["2025-10-02",37160.0],["2025-10-03",36820.0],["2025-10-06",37560.0],["2025-10-07",37520.0],["2025-10-08",37720.0],["2025-10-09",38660.0],["2025-10-13",39760.0],["2025-10-14",38460.0],["2025-10-15",38700.0],["2025-10-16",39120.0],["2025-10-17",40260.0],["2025-10-20",39520.0],["2025-10-21",39800.0],["2025-10-22",39820.0],["2025-10-23",41740.0],["2025-10-24",42280.0],["2025-10-27",48700.0],["2025-10-28",50625.0],["2025-10-29",51975.0],["2025-10-30",51650.0],["2025-10-31",54600.0],["2025-11-03",56050.0],["2025-11-04",55375.0],["2025-11-05",55600.0],["2025-11-06",54625.0],["2025-11-07",54300.0],["2025-11-10",55875.0],["2025-11-11",56050.0],["2025-11-12",55875.0],["2025-11-13",54975.0],["2025-11-14",58150.0],["2025-11-17",56850.0],["2025-11-18",57775.0],["2025-11-19",56550.0],["2025-11-20",55800.0],["2025-11-21",53975.0],["2025-11-25",54575.0],["2025-11-26",55650.0],["2025-11-27",56175.0],["2025-11-28",56100.0],["2025-12-01",55700.0],["2025-12-02",55575.0],["2025-12-03",56700.0],["2025-12-04",55950.0],["2025-12-05",54975.0],["2025-12-09",53850.0],["2025-12-10",54400.0],["2025-12-11",53350.0],["2025-12-12",52850.0],["2025-12-15",53550.0],["2025-12-16",53200.0],["2025-12-17",53200.0],["2025-12-18",54750.0],["2025-12-19",54675.0],["2025-12-22",55125.0],["2025-12-23",55100.0],["2025-12-24",54900.0],["2025-12-26",54600.0],["2025-12-29",55850.0],["2025-12-30",54600.0],["2026-01-02",56450.0],["2026-01-05",55275.0],["2026-01-06",54375.0],["2026-01-07",51100.0],["2026-01-08",51925.0],["2026-01-09",51875.0],["2026-01-12",51750.0],["2026-01-13",52825.0],["2026-01-14",52825.0],["2026-01-15",51825.0],["2026-01-16",52150.0],["2026-01-19",51625.0],["2026-01-20",52675.0],["2026-01-21",54000.0],["2026-01-22",53825.0],["2026-01-23",55150.0],["2026-01-26",55275.0],["2026-01-27",57725.0],["2026-01-28",58050.0],["2026-01-29",59075.0],["2026-01-30",59700.0],["2026-02-02",57975.0],["2026-02-03",57125.0],["2026-02-04",58375.0],["2026-02-05",56425.0],["2026-02-06",56900.0],["2026-02-09",56675.0],["2026-02-10",58150.0],["2026-02-11",57725.0],["2026-02-12",55250.0],["2026-02-13",54600.0],["2026-02-14",54600.0],["2026-02-15",54600.0],["2026-02-18",54175.0],["2026-02-19",55950.0],["2026-02-20",55700.0],["2026-02-22",55700.0],["2026-02-23",54400.0],["2026-02-24",54850.0],["2026-02-26",53425.0],["2026-02-27",50800.0],["2026-03-01",50800.0],["2026-03-02",51250.0],["2026-03-03",51425.0],["2026-03-04",51000.0],["2026-03-05",51000.0],["2026-03-06",53300.0],["2026-03-10",53100.0],["2026-03-11",56300.0],["2026-03-13",55000.0],["2026-03-16",54500.0]];
 window.GGAL_HIST_DATA=[["2025-06-25",6053.39],["2025-06-26",6072.85],["2025-06-27",6043.66],["2025-06-30",5917.14],["2025-07-01",6024.19],["2025-07-02",6063.12],["2025-07-03",6092.32],["2025-07-04",6082.59],["2025-07-07",6025.15],["2025-07-08",6220.45],["2025-07-10",6210.0],["2025-07-11",5859.14],["2025-07-14",5937.26],["2025-07-15",5937.26],["2025-07-16",5781.01],["2025-07-17",5976.32],["2025-07-18",5956.79],["2025-07-21",5898.2],["2025-07-22",5888.43],["2025-07-23",6083.74],["2025-07-24",6347.4],["2025-07-25",6484.11],["2025-07-28",6464.58],["2025-07-29",6669.65],["2025-07-30",6689.18],["2025-07-31",6708.71],["2025-08-01",6532.94],["2025-08-04",6532.94],["2025-08-05",6698.95],["2025-08-06",6904.02],["2025-08-07",6699.45],["2025-08-08",6640.69],["2025-08-11",6640.69],["2025-08-12",6728.84],["2025-08-13",6689.66],["2025-08-14",6317.47],["2025-08-18",6248.91],["2025-08-19",5945.28],["2025-08-20",5915.89],["2025-08-21",5964.86],["2025-08-22",5915.89],["2025-08-25",5631.85],["2025-08-26",5533.91],["2025-08-27",5308.63],["2025-08-28",5259.66],["2025-08-29",5191.1],["2025-09-01",5093.15],["2025-09-02",5308.63],["2025-09-03",5181.3],["2025-09-04",5426.17],["2025-09-05",5467.54],["2025-09-08",4366.16],["2025-09-09",4253.08],["2025-09-10",4538.25],["2025-09-11",4447.29],["2025-09-12",4336.66],["2025-09-15",4233.41],["2025-09-16",4366.16],["2025-09-17",4334.2],["2025-09-18",4125.24],["2025-09-19",4019.53],["2025-09-22",4530.88],["2025-09-23",4400.58],["2025-09-24",4496.46],["2025-09-25",4211.28],["2025-09-26",4267.83],["2025-09-29",4324.37],["2025-09-30",4179.32],["2025-10-01",4120.32],["2025-10-02",4265.37],["2025-10-03",4302.24],["2025-10-06",4297.33],["2025-10-07",4289.59],["2025-10-08",4343.95],["2025-10-09",4815.91],["2025-10-13",4875.21],["2025-10-14",4638.0],["2025-10-15",4741.78],["2025-10-16",4796.14],["2025-10-17",4902.39],["2025-10-20",4951.81],["2025-10-21",5055.59],["2025-10-22",5243.38],["2025-10-23",5357.05],["2025-10-24",5485.54],["2025-10-27",7007.65],["2025-10-28",7571.03],["2025-10-29",7798.36],["2025-10-30",7912.02],["2025-10-31",8742.27],["2025-11-03",9078.32],["2025-11-04",8959.71],["2025-11-05",8702.73],["2025-11-06",8574.24],["2025-11-07",8001.96],["2025-11-10",8145.65],["2025-11-11",8071.33],["2025-11-12",8130.79],["2025-11-13",7744.31],["2025-11-14",7833.5],["2025-11-17",7570.9],["2025-11-18",7491.62],["2025-11-19",7238.93],["2025-11-20",7229.02],["2025-11-21",6921.82],["2025-11-25",7392.52],["2025-11-26",7759.18],["2025-11-27",7783.95],["2025-11-28",7848.36],["2025-12-01",7932.6],["2025-12-02",7853.32],["2025-12-03",8031.69],["2025-12-04",7808.73],["2025-12-05",7633.37],["2025-12-09",7454.46],["2025-12-10",7454.46],["2025-12-11",7305.37],["2025-12-12",7315.31],["2025-12-15",7454.46],["2025-12-16",7668.15],["2025-12-17",7762.58],["2025-12-18",8269.48],["2025-12-19",8319.18],["2025-12-22",8239.66],["2025-12-23",8209.84],["2025-12-24",8219.78],["2025-12-26",8329.12],["2025-12-29",8319.18],["2025-12-30",8150.21],["2026-01-02",8299.3],["2026-01-05",8463.3],["2026-01-06",8418.57],["2026-01-07",8289.36],["2026-01-08",8478.21],["2026-01-09",8516.89],["2026-01-12",8392.31],["2026-01-13",8118.21],["2026-01-14",7739.46],["2026-01-15",7824.18],["2026-01-16",7739.46],["2026-01-19",7729.49],["2026-01-20",7689.62],["2026-01-21",8093.29],["2026-01-22",8073.36],["2026-01-23",8098.28],["2026-01-26",8168.05],["2026-01-27",8382.34],["2026-01-28",8432.17],["2026-01-29",8282.67],["2026-01-30",8282.67],["2026-02-02",8048.44],["2026-02-03",7779.33],["2026-02-04",7754.41],["2026-02-05",7480.32],["2026-02-06",7470.0],["2026-02-09",7445.0],["2026-02-10",7745.0],["2026-02-11",7560.0],["2026-02-12",6950.0],["2026-02-13",6720.0],["2026-02-14",6720.0],["2026-02-15",6720.0],["2026-02-18",6445.0],["2026-02-19",6865.0],["2026-02-20",7175.0],["2026-02-22",7175.0],["2026-02-23",6950.0],["2026-02-24",7055.0],["2026-02-26",6910.0],["2026-02-27",6540.0],["2026-03-01",6540.0],["2026-03-02",6355.0],["2026-03-03",6500.0],["2026-03-04",6150.0],["2026-03-05",6150.0],["2026-03-06",6140.0],["2026-03-10",6155.0],["2026-03-11",6280.0],["2026-03-13",6045.0],["2026-03-16",5850.0]];
 
 // ─── DATOS EMBEBIDOS PAMP / YPFD (13/03/2026 17:00 cierre) ───────────────────
@@ -1603,8 +1683,8 @@ function saveHistoricoSesion(){
   localStorage.setItem('hist_sesion_'+currentTicker,JSON.stringify(hist));
 }
 
-// ─── GRÁFICO PRECIO GGAL + HV ─────────────────────────────────────────────────
-let ggalPrecioChart=null;
+// ─── GRÁFICO PRECIO HISTÓRICO + HV (ticker-agnostic) ─────────────────────────
+let _precioHistChart=null;
 function _calcHV(cierres,n){
   if(cierres.length<n+1)return null;
   const ult=cierres.slice(-(n+1));
@@ -1613,31 +1693,157 @@ function _calcHV(cierres,n){
   const v=lr.reduce((a,b)=>a+(b-m)**2,0)/(lr.length-1);
   return Math.round(Math.sqrt(v)*Math.sqrt(252)*100*10)/10;
 }
-function renderGgalPrecioChart(){
-  const data=window.GGAL_HIST_DATA;if(!data||!data.length)return;
-  // Últimos 180 días pero mostrar sólo últimos 126 en el gráfico (~6 meses), usar todos para HV60
-  const all=data;
-  const cierres=all.map(d=>d[1]);
+function renderGgalPrecioChart(){  // llamado desde renderHistorico()
+  const tk=currentTicker||'GGAL';
+  const data=window[tk+'_HIST_DATA']||window.GGAL_HIST_DATA;
+  if(!data||!data.length)return;
+  const cierres=data.map(d=>d[1]);
   const hv20=_calcHV(cierres,20);const hv30=_calcHV(cierres,30);const hv60=_calcHV(cierres,60);
   const hv20El=document.getElementById('ggal-hv20');if(hv20El)hv20El.textContent=hv20??'—';
   const hv30El=document.getElementById('ggal-hv30');if(hv30El)hv30El.textContent=hv30??'—';
   const hv60El=document.getElementById('ggal-hv60');if(hv60El)hv60El.textContent=hv60??'—';
-  // Gráfico: últimos 126 registros (~6 meses)
-  const disp=all.slice(-126);
-  const labels=disp.map(d=>d[0].slice(5));// MM-DD
+  // título dinámico
+  const titleEl=document.getElementById('hist-precio-title');
+  if(titleEl)titleEl.textContent='Precio '+tk+' — últimos 9 meses';
+  const disp=data.slice(-126);
+  const labels=disp.map(d=>d[0].slice(5));
   const prices=disp.map(d=>d[1]);
   const ctx=document.getElementById('ggal-precio-chart')?.getContext('2d');
   if(!ctx)return;
-  if(ggalPrecioChart)ggalPrecioChart.destroy();
-  ggalPrecioChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{
-    label:'GGAL cierre',data:prices,
-    borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.06)',
+  if(_precioHistChart)_precioHistChart.destroy();
+  const color=tk==='PAMP'?'#f59e0b':tk==='YPFD'?'#a0c4ff':'#22c55e';
+  _precioHistChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{
+    label:tk+' cierre',data:prices,
+    borderColor:color,backgroundColor:color.replace(')',',0.06)').replace('rgb','rgba'),
     tension:0.2,pointRadius:0,borderWidth:1.5,fill:true
   }]},options:{responsive:true,animation:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'$'+fmtARS(ctx.parsed.y)}}},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+fmtARS(c.parsed.y)}}},
     scales:{x:{ticks:{maxTicksLimit:8,color:'#505060',font:{size:9}},grid:{color:'#1a1a1a'}},
             y:{ticks:{color:'#505060',font:{size:9},callback:v=>'$'+fmtARS(v)},grid:{color:'#1a1a1a'}}}}});
 }
+
+// ─── FLUJO & GEX ──────────────────────────────────────────────────────────────
+let gexOiChart=null,gexGexChart=null,gexDonutChart=null;
+function _bsGamma(S,K,t,r,sigma){
+  if(!t||!sigma||t<=0||sigma<=0)return 0;
+  const d1=(Math.log(S/K)+(r+0.5*sigma*sigma)*t)/(sigma*Math.sqrt(t));
+  const nd1=(1/Math.sqrt(2*Math.PI))*Math.exp(-0.5*d1*d1);
+  return nd1/(S*sigma*Math.sqrt(t));
+}
+function _bsDelta(S,K,t,r,sigma,tipo){
+  if(!t||!sigma||t<=0||sigma<=0)return tipo==='C'?0.5:-0.5;
+  const d1=(Math.log(S/K)+(r+0.5*sigma*sigma)*t)/(sigma*Math.sqrt(t));
+  const erf=x=>{const t2=1/(1+0.3275911*Math.abs(x));const y=1-t2*(0.254829592+t2*(-0.284496736+t2*(1.421413741+t2*(-1.453152027+t2*1.061405429))))*Math.exp(-x*x);return x>=0?y:-y;};
+  const N=x=>(1+erf(x/Math.sqrt(2)))/2;
+  return tipo==='C'?N(d1):N(d1)-1;
+}
+function renderFlujoGex(){
+  if(!strikesDisponibles.length){
+    document.getElementById('gex-tbody').innerHTML='<tr><td colspan="10" style="padding:24px;text-align:center;color:#404040;font-family:var(--font);">Cargá la cadena de opciones primero.</td></tr>';
+    return;
+  }
+  const spot=spotGGAL||0;
+  const t=(diasVto||30)/365;
+  const r=0.242; // tasa ref
+  const rows=[];
+  let totOiC=0,totOiP=0,totGexC=0,totGexP=0;
+  let maxOiC=0,maxOiP=0,maxOiCK=null,maxOiPK=null;
+  for(const K of strikesDisponibles){
+    const ld=strikeLast[K];if(!ld)continue;
+    const bidC=ld.bidCall||0, bidP=ld.bidPut||0;
+    const viC=(ld.viCall&&ld.viCall>0)?ld.viCall:(bidC>0&&spot>0?0.4:0);
+    const viP=(ld.viPut&&ld.viPut>0)?ld.viPut:(bidP>0&&spot>0?0.4:0);
+    // OI proxy: bid × 100 (escala a nocional por acción)
+    const oiC=bidC>0?Math.round(bidC*10):0;
+    const oiP=bidP>0?Math.round(bidP*10):0;
+    // Delta y GEX
+    const dC=ld.callData?.delta||_bsDelta(spot,K,t,r,viC,'C');
+    const dP=ld.putData?.delta||_bsDelta(spot,K,t,r,viP,'P');
+    const gamC=_bsGamma(spot,K,t,r,viC||0.4);
+    const gamP=_bsGamma(spot,K,t,r,viP||0.4);
+    const gexC=Math.round(gamC*oiC*spot*spot*0.0001);
+    const gexP=-Math.round(gamP*oiP*spot*spot*0.0001);
+    totOiC+=oiC;totOiP+=oiP;totGexC+=gexC;totGexP+=gexP;
+    if(oiC>maxOiC){maxOiC=oiC;maxOiCK=K;}
+    if(oiP>maxOiP){maxOiP=oiP;maxOiPK=K;}
+    rows.push({K,oiC,oiP,bidC,bidP,viC,viP,dC,dP,gexC,gexP,net:gexC+gexP});
+  }
+  // KPIs
+  const pcr=totOiC>0?Math.round(totOiP/totOiC*100)/100:null;
+  const gexNeto=totGexC+totGexP;
+  const el=id=>document.getElementById(id);
+  if(el('gex-pcr'))el('gex-pcr').textContent=pcr??'—';
+  if(el('gex-pcr-signal'))el('gex-pcr-signal').textContent=!pcr?'—':pcr>1.2?'Bearish (puts dominan)':pcr<0.8?'Bullish (calls dominan)':'Neutral';
+  if(el('gex-neto'))el('gex-neto').textContent=gexNeto>0?'+'+fmtARS(gexNeto):fmtARS(gexNeto);
+  if(el('gex-neto').style)el('gex-neto').style.color=gexNeto>=0?'#22c55e':'#ef4444';
+  if(el('gex-neto-signal'))el('gex-neto-signal').textContent=gexNeto>=0?'Dealers long gamma (mkt estable)':'Dealers short gamma (mkt volátil)';
+  // Gamma Flip: strike donde GEX neto acumulado cambia de signo
+  let cumGex=0,flipK=null;
+  for(const row of [...rows].sort((a,b)=>a.K-b.K)){
+    const prev=cumGex;cumGex+=row.net;
+    if(prev*cumGex<0&&flipK===null)flipK=row.K;
+  }
+  if(el('gex-flip'))el('gex-flip').textContent=flipK?'$'+fmtARS(flipK):'—';
+  if(el('gex-wall-c'))el('gex-wall-c').textContent=maxOiCK?'CALL: $'+fmtARS(maxOiCK):'—';
+  if(el('gex-wall-p'))el('gex-wall-p').textContent=maxOiPK?'PUT: $'+fmtARS(maxOiPK):'—';
+  // OI chart
+  const labels=rows.map(r=>'$'+fmtARS(r.K));
+  const ctxOi=document.getElementById('gex-oi-chart')?.getContext('2d');
+  if(ctxOi){if(gexOiChart)gexOiChart.destroy();
+    gexOiChart=new Chart(ctxOi,{type:'bar',data:{labels,datasets:[
+      {label:'OI Call',data:rows.map(r=>r.oiC),backgroundColor:'rgba(34,197,94,0.55)',borderColor:'#22c55e',borderWidth:1},
+      {label:'OI Put',data:rows.map(r=>r.oiP),backgroundColor:'rgba(239,68,68,0.55)',borderColor:'#ef4444',borderWidth:1}
+    ]},options:{responsive:true,animation:false,
+      plugins:{legend:{labels:{color:'#606070',font:{size:9},boxWidth:10}}},
+      scales:{x:{ticks:{maxRotation:45,color:'#505060',font:{size:8}},grid:{color:'#1a1a1a'}},
+              y:{ticks:{color:'#505060',font:{size:9}},grid:{color:'#1a1a1a'}}}}});}
+  // GEX chart
+  const ctxGex=document.getElementById('gex-gex-chart')?.getContext('2d');
+  if(ctxGex){if(gexGexChart)gexGexChart.destroy();
+    gexGexChart=new Chart(ctxGex,{type:'bar',data:{labels,datasets:[{
+      label:'GEX neto',
+      data:rows.map(r=>r.net),
+      backgroundColor:rows.map(r=>r.net>=0?'rgba(34,197,94,0.6)':'rgba(239,68,68,0.6)'),
+      borderColor:rows.map(r=>r.net>=0?'#22c55e':'#ef4444'),borderWidth:1
+    }]},options:{responsive:true,animation:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{maxRotation:45,color:'#505060',font:{size:8}},grid:{color:'#1a1a1a'}},
+              y:{ticks:{color:'#505060',font:{size:9}},grid:{color:'#1a1a1a'}}}}});}
+  // Donut
+  const cubCall=rows.filter(r=>r.K>spot&&r.oiC>0).reduce((s,r)=>s+r.oiC,0);
+  const cubPut=rows.filter(r=>r.K<spot&&r.oiP>0).reduce((s,r)=>s+r.oiP,0);
+  const opCall=rows.filter(r=>r.K<spot&&r.oiC>0).reduce((s,r)=>s+r.oiC,0);
+  const opPut=rows.filter(r=>r.K>spot&&r.oiP>0).reduce((s,r)=>s+r.oiP,0);
+  const ctxD=document.getElementById('gex-donut-chart')?.getContext('2d');
+  if(ctxD){if(gexDonutChart)gexDonutChart.destroy();
+    gexDonutChart=new Chart(ctxD,{type:'doughnut',data:{labels:['Call OTM','Call ITM','Put OTM','Put ITM'],
+      datasets:[{data:[cubCall,opCall,cubPut,opPut],
+        backgroundColor:['rgba(34,197,94,0.7)','rgba(34,197,94,0.25)','rgba(239,68,68,0.7)','rgba(239,68,68,0.25)'],
+        borderColor:'#111118',borderWidth:2}]},
+      options:{responsive:true,animation:false,cutout:'60%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+fmtARS(c.parsed)}}}}});}
+  const leg=el('gex-donut-legend');
+  if(leg)leg.innerHTML=`<span style="color:#22c55e;">■</span> Call OTM: ${fmtARS(cubCall)}<br><span style="color:rgba(34,197,94,0.5);">■</span> Call ITM: ${fmtARS(opCall)}<br><span style="color:#ef4444;">■</span> Put OTM: ${fmtARS(cubPut)}<br><span style="color:rgba(239,68,68,0.5);">■</span> Put ITM: ${fmtARS(opPut)}`;
+  // Tabla
+  const thStyle='text-align:right;padding:4px 8px;border-bottom:1px solid #1a1a1a;font-family:var(--font);font-size:11px;';
+  const tbody=el('gex-tbody');
+  if(tbody)tbody.innerHTML=rows.map(r=>{
+    const isAtm=Math.abs(r.K-spot)<spot*0.03;
+    const bg=isAtm?'background:#1a1a28;':'';
+    return`<tr style="${bg}border-bottom:1px solid #111118;">
+      <td style="${thStyle}font-weight:${isAtm?700:400};color:${isAtm?'#f59e0b':'#c0c0d0'};">$${fmtARS(r.K)}</td>
+      <td style="${thStyle}color:#22c55e;">${r.oiC||'—'}</td>
+      <td style="${thStyle}color:#22c55e;">${r.bidC?'$'+fmtARS(r.bidC):'—'}</td>
+      <td style="${thStyle}color:#22c55e;">${r.viC?(r.viC*100).toFixed(1)+'%':'—'}</td>
+      <td style="${thStyle}color:${r.gexC>=0?'#22c55e':'#ef4444'};">${r.gexC?fmtARS(r.gexC):'—'}</td>
+      <td style="${thStyle}color:#ef4444;">${r.oiP||'—'}</td>
+      <td style="${thStyle}color:#ef4444;">${r.bidP?'$'+fmtARS(r.bidP):'—'}</td>
+      <td style="${thStyle}color:#ef4444;">${r.viP?(r.viP*100).toFixed(1)+'%':'—'}</td>
+      <td style="${thStyle}color:${r.gexP>=0?'#22c55e':'#ef4444'};">${r.gexP?fmtARS(r.gexP):'—'}</td>
+      <td style="${thStyle}font-weight:700;color:${r.net>=0?'#22c55e':'#ef4444'};">${r.net?fmtARS(r.net):'—'}</td>
+    </tr>`;
+  }).join('');}
+
 
 let histViChart=null,histStraddleChart=null,histRcChart=null;
 function renderHistorico(){
