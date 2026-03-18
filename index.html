@@ -312,6 +312,10 @@
           <table><thead><tr><th style="text-align:left;">TICKER</th><th>BID</th><th>LAST</th><th>OFFER</th><th>VI</th><th>VAR%</th><th>Δ</th><th>Γ</th><th>Θ</th><th>ν</th><th>VOL</th></tr></thead><tbody id="puts-body"></tbody></table>
         </div>
       </div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px;">
+        <button id="btn-analizar-plaza" onclick="analizarPlazaConClaude()" style="padding:7px 16px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;border:none;border-radius:4px;font-weight:700;font-family:var(--font);cursor:pointer;font-size:12px;letter-spacing:0.3px;">🤖 Copiar cadena para Claude</button>
+        <span id="plaza-claude-feedback" style="font-size:11px;color:#22c55e;font-family:var(--font);display:none;">✓ Copiado al portapapeles</span>
+      </div>
     </div>
   </div>
 
@@ -1331,6 +1335,59 @@ function copiarPromptClaude(){
   navigator.clipboard.writeText(ta.value).then(()=>{
     const btn=event.target;btn.textContent='✅ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar prompt',2000);
   }).catch(()=>{ta.select();document.execCommand('copy');});
+}
+
+// ─── ANALIZAR PLAZA CON CLAUDE ────────────────────────────────────────────────
+function analizarPlazaConClaude(){
+  if(!strikesDisponibles.length){alert('Cargá datos de la Plaza primero');return;}
+  const spot=spotGGAL||0;
+  const T=(diasVto||30)/365,r=Math.log(1+0.40);
+  const strikes=[...strikesDisponibles].sort((a,b)=>a-b);
+
+  const cadena=strikes.map(K=>{
+    const ld=strikeLast[K]||{};
+    const viC=ld.viCall||null, viP=ld.viPut||null;
+    const gC=spot&&viC?bsGreeks(spot,K,T,r,viC,'C'):null;
+    const gP=spot&&viP?bsGreeks(spot,K,T,r,viP,'P'):null;
+    return {
+      strike:K,
+      call:{bid:ld.bidCall||null,last:ld.call||null,iv_pct:viC?parseFloat((viC*100).toFixed(1)):null,delta:gC?parseFloat(gC.delta.toFixed(3)):null,theta:gC?parseFloat(gC.theta.toFixed(2)):null},
+      put:{bid:ld.bidPut||null,last:ld.put||null,iv_pct:viP?parseFloat((viP*100).toFixed(1)):null,delta:gP?parseFloat(gP.delta.toFixed(3)):null,theta:gP?parseFloat(gP.theta.toFixed(2)):null}
+    };
+  });
+
+  const atmK=strikes.reduce((p,c)=>Math.abs(c-spot)<Math.abs(p-spot)?c:p,strikes[0]);
+  const atmIvC=(strikeLast[atmK]?.viCall||0)*100;
+  const atmIvP=(strikeLast[atmK]?.viPut||0)*100;
+  const skew=parseFloat((atmIvP-atmIvC).toFixed(1));
+
+  const payload={
+    _generado:new Date().toISOString(),
+    ticker:currentTicker,
+    spot:spot,
+    dias_vto:diasVto,
+    atm_strike:atmK,
+    iv_atm_call_pct:parseFloat(atmIvC.toFixed(1)),
+    iv_atm_put_pct:parseFloat(atmIvP.toFixed(1)),
+    skew_put_call_pct:skew,
+    cadena_opciones:cadena
+  };
+
+  const json=JSON.stringify(payload,null,2);
+  const prompt=`Sos un analista de opciones BYMA experto en el mercado argentino.\nAnalizá la siguiente cadena de opciones en tiempo real y respondé:\n1. ¿Qué indica el skew de volatilidad (put vs call)? ¿El mercado está sesgado a la baja/alza?\n2. ¿Qué strikes tienen mejor relación IV/precio para vender tiempo (theta positivo)?\n3. ¿Hay alguna estructura interesante (spread, cono, mariposa) dada esta cadena?\n4. IV ATM: ${atmIvC.toFixed(1)}% — ¿es alta, media o baja para ${currentTicker} histórico?\n\n\`\`\`json\n${json}\n\`\`\``;
+
+  navigator.clipboard.writeText(prompt).then(()=>{
+    const fb=document.getElementById('plaza-claude-feedback');
+    if(fb){fb.style.display='inline';setTimeout(()=>fb.style.display='none',3000);}
+  }).catch(()=>{
+    // fallback: crear textarea temporal
+    const ta=document.createElement('textarea');
+    ta.value=prompt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    const fb=document.getElementById('plaza-claude-feedback');
+    if(fb){fb.style.display='inline';setTimeout(()=>fb.style.display='none',3000);}
+  });
 }
 
 // ─── OPERACIONES ──────────────────────────────────────────────────────────────
