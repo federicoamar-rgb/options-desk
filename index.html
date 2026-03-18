@@ -398,6 +398,15 @@
           </div>
         </div>
         <div class="payoff-panel" style="margin-top:8px;padding:10px 12px;">
+          <div class="payoff-panel-title" style="margin-bottom:8px;">🤖 Analizar con Claude</div>
+          <button onclick="analizarConClaude()" style="width:100%;padding:9px;background:linear-gradient(135deg,#d4581a,#b04010);color:white;border:none;border-radius:4px;font-weight:700;font-family:var(--font);cursor:pointer;font-size:12px;letter-spacing:0.3px;">Generar análisis de la estrategia</button>
+          <div id="claude-prompt-area" style="display:none;margin-top:10px;">
+            <div style="font-size:10px;color:#606070;font-family:var(--font);margin-bottom:5px;">Copiá este prompt y pegalo en Claude.ai (o en el sistema):</div>
+            <textarea id="claude-prompt-text" rows="8" readonly style="width:100%;background:#0a0a14;border:1px solid var(--border2);border-radius:4px;padding:8px;color:#a0c4ff;font-family:monospace;font-size:11px;resize:vertical;"></textarea>
+            <button onclick="copiarPromptClaude()" style="margin-top:6px;width:100%;padding:6px;background:none;border:1px solid #606070;border-radius:4px;color:#a0c4ff;font-family:var(--font);cursor:pointer;font-size:11px;">📋 Copiar prompt</button>
+          </div>
+        </div>
+        <div class="payoff-panel" style="margin-top:8px;padding:10px 12px;">
           <div class="payoff-panel-title" style="margin-bottom:8px;">📋 Guardar operación</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
             <div><div class="pata-label" style="margin-bottom:3px;">Fecha</div><input type="date" id="op-fecha"></div>
@@ -501,6 +510,7 @@
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
         <button onclick="abrirModalPosicion()" style="padding:7px 14px;background:var(--tk-color);color:white;border:none;border-radius:4px;font-weight:700;font-family:var(--font);cursor:pointer;font-size:12px;">+ Agregar posición</button>
         <button onclick="cerrarTodasPosiciones()" style="padding:7px 14px;background:none;color:#ef4444;border:1px solid #ef4444;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;">Cerrar todas</button>
+        <button onclick="resetearPosicionesDefault()" style="padding:7px 14px;background:none;color:#f59e0b;border:1px solid #f59e0b;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;" title="Restaura BPS 5950/5574 + CC 6374 del 17/03">&#8634; Restaurar 17/03</button>
       </div>
       <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
         <div class="mini-stat"><div class="mini-stat-label">P&L Día</div><div id="pos-pnl-dia" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
@@ -701,6 +711,10 @@
                   <input type="number" id="prom-acciones" value="100" oninput="calcularPrecioPromedio()">
                 </div>
               </div>
+                <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;">
+                  <input type="checkbox" id="prom-por-contrato" onchange="calcularPrecioPromedio()" style="cursor:pointer;">
+                  <label for="prom-por-contrato" style="font-size:11px;color:#606070;font-family:var(--font);cursor:pointer;">Precios ingresados por contrato (÷100 automático)</label>
+                </div>
             </div>
           </div>
         </div>
@@ -812,17 +826,17 @@
 const TICKER_CONFIG = {
   GGAL: {
     name: 'GGAL', fullName: 'Grupo Financiero Galicia', icon: 'GO',
-    csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT3WNyHxyaxw15sycBbuKe1REh28RHytoNGw9y4No3-CbbtrvZUPpLJG7IU_D0ZYe5qrFzDU5RFAEhu/pub?gid=137375925&single=true&output=csv',
+    csvUrl: 'https://federicoamar-rgb.github.io/options-desk/GGAL.csv',
     color: '#d4581a', light: 'rgba(212,88,26,0.15)'
   },
   PAMP: {
     name: 'PAMP', fullName: 'Pampa Energía', icon: 'PA',
-    csvUrl: '', // ← PEGAR URL CSV DE PAMP ACÁ
+    csvUrl: 'https://federicoamar-rgb.github.io/options-desk/PAMP.csv',
     color: '#3b82f6', light: 'rgba(59,130,246,0.15)'
   },
   YPFD: {
     name: 'YPFD', fullName: 'YPF', icon: 'YP',
-    csvUrl: '', // ← PEGAR URL CSV DE YPFD ACÁ
+    csvUrl: 'https://federicoamar-rgb.github.io/options-desk/YPFD.csv',
     color: '#22c55e', light: 'rgba(34,197,94,0.12)'
   }
 };
@@ -1269,6 +1283,56 @@ function onGraficoDiasChange(val){graficoDiasActual=parseInt(val);const l=docume
 function onGraficoVIChange(val){graficoVIActual=parseInt(val);const l=document.getElementById('grafico-vi-label');if(l)l.textContent=`${graficoVIActual>=0?'+':''}${graficoVIActual}%`;recalcular();}
 function sincronizarSliders(){const s=document.getElementById('grafico-dias'),l=document.getElementById('grafico-dias-label');if(s&&diasVto){s.max=diasVto;s.value=graficoDiasActual||diasVto;if(l)l.textContent=`${s.value}d`;}}
 
+// ─── ANALIZAR CON CLAUDE ──────────────────────────────────────────────────────
+function analizarConClaude(){
+  const v=patas.filter(p=>p.strike!==''&&(p.tipo==='S'||p.prima!==''));
+  if(!v.length){alert('Ingresá al menos una pata primero');return;}
+  const optSize=parseFloat(document.getElementById('opt-size')?.value)||100;
+  const undSize=parseFloat(document.getElementById('und-size')?.value)||1;
+  const spotInput=parseFloat(document.getElementById('spot-input')?.value)||spotGGAL||6600;
+  const T=diasVto/365,r=Math.log(1+0.40);
+  const estrategia=detectarEstrategia(patas);
+  const grk=calcularGriegas(v,spotInput,r,T,optSize,undSize);
+  const maxGan=Math.max(...Array.from({length:301},(_,i)=>calcularPayoff(spotInput*(0.7+i*0.002),v,optSize,undSize)));
+  const maxPer=Math.min(...Array.from({length:301},(_,i)=>calcularPayoff(spotInput*(0.7+i*0.002),v,optSize,undSize)));
+  const atmK=strikesDisponibles.length?strikesDisponibles.reduce((p,c)=>Math.abs(c-spotInput)<Math.abs(p-spotInput)?c:p,strikesDisponibles[0]):null;
+  const ivAtm=atmK?(getVI(atmK,'C')*100).toFixed(1):null;
+  let prompt=`Sos un analista de opciones BYMA experto en el mercado argentino.\n\n`;
+  prompt+=`## ESTRATEGIA CARGADA\n`;
+  prompt+=`Ticker: ${currentTicker} | Spot actual: $${fmtARS(spotInput)} | Días al vto: ${diasVto}\n`;
+  prompt+=`Estrategia detectada: ${estrategia}\n\n`;
+  prompt+=`## PATAS\n`;
+  v.forEach(p=>{
+    const dir=p.cant>0?'COMPRA':'VENTA';
+    const tipo=p.tipo==='C'?'CALL':p.tipo==='P'?'PUT':'ACC';
+    prompt+=`- ${dir} ${Math.abs(p.cant)} ${tipo} strike $${fmtARS(parseFloat(p.strike))} prima $${fmtARS(parseFloat(p.prima))} (${optSize} acc/contrato)\n`;
+  });
+  prompt+=`\n## MÉTRICAS\n`;
+  prompt+=`Máx. ganancia: $${fmtARS(maxGan)} | Máx. pérdida: $${fmtARS(Math.abs(maxPer))}\n`;
+  if(grk){prompt+=`Delta: ${grk.delta.toFixed(2)} | Gamma: ${grk.gamma.toFixed(4)} | Theta/día: ${grk.theta.toFixed(2)} | Vega: ${grk.vega.toFixed(2)}\n`;}
+  if(ivAtm){prompt+=`IV ATM: ${ivAtm}% | `;}
+  prompt+=`Tasa libre de riesgo usada: 40% anual\n`;
+  prompt+=`\n## ESCENARIOS AL VENCIMIENTO\n`;
+  [-20,-15,-10,-5,0,5,10,15,20].forEach(pct=>{
+    const precio=spotInput*(1+pct/100);
+    const pnl=calcularPayoff(precio,v,optSize,undSize);
+    prompt+=`Spot ${pct>0?'+':''}${pct}% ($${fmtARS(precio)}): P&L = $${fmtARS(pnl)}\n`;
+  });
+  prompt+=`\n## PEDIDO\n`;
+  prompt+=`1. Evaluá si la estrategia es apropiada dado el contexto de mercado argentino (volatilidad implícita vs histórica).\n`;
+  prompt+=`2. Identificá el riesgo principal y cómo mitigarlo.\n`;
+  prompt+=`3. Sugerí niveles de salida (take profit y stop loss) en términos de precio de la opción o del subyacente.\n`;
+  prompt+=`4. ¿Hay una estructura más eficiente para el mismo objetivo de mercado?\n`;
+  document.getElementById('claude-prompt-area').style.display='block';
+  document.getElementById('claude-prompt-text').value=prompt;
+}
+function copiarPromptClaude(){
+  const ta=document.getElementById('claude-prompt-text');if(!ta)return;
+  navigator.clipboard.writeText(ta.value).then(()=>{
+    const btn=event.target;btn.textContent='✅ Copiado!';setTimeout(()=>btn.textContent='📋 Copiar prompt',2000);
+  }).catch(()=>{ta.select();document.execCommand('copy');});
+}
+
 // ─── OPERACIONES ──────────────────────────────────────────────────────────────
 function guardarOperacion(){
   const v=patas.filter(p=>p.strike!==''&&(p.tipo==='S'||p.prima!==''));
@@ -1420,7 +1484,20 @@ function renderVolatilityDashboard(){
 }
 
 // ─── MI POSICIÓN ──────────────────────────────────────────────────────────────
-let posicionesAbiertas=JSON.parse(localStorage.getItem('pos_GGAL')||'[]');
+const POSICIONES_DEFAULT_GGAL=[
+  {id:1742169600000,fecha:'2026-03-17',nota:'Bull Put Spread Caja 3 — 5950/5574 Abr26',ticker:'GGAL',optSize:100,undSize:1,
+   patas:[{tipo:'P',strike:5950,prima:242,last:null,cant:-1},{tipo:'P',strike:5574,prima:117.43,last:null,cant:1}],
+   estrategia:'📈 Bull Spread Put',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]},
+  {id:1742169600001,fecha:'2026-03-17',nota:'CC Defensivo Caja 1 — CALL 6374 Abr26',ticker:'GGAL',optSize:100,undSize:1,
+   patas:[{tipo:'C',strike:6374,prima:450.05,last:null,cant:-1}],
+   estrategia:'Venta de Call',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]}
+];
+let posicionesAbiertas=(()=>{
+  const saved=JSON.parse(localStorage.getItem('pos_GGAL')||'null');
+  // Auto-fix: replace bad strike 6574 with correct 5574
+  if(saved){saved.forEach(pos=>pos.patas&&pos.patas.forEach(p=>{if(p.tipo==='P'&&p.strike===6574)p.strike=5574;}));return saved;}
+  return JSON.parse(JSON.stringify(POSICIONES_DEFAULT_GGAL));
+})();
 let modalPatasCount=0;
 
 function abrirModalPosicion(){modalPatasCount=0;document.getElementById('modal-patas-container').innerHTML='';document.getElementById('modal-fecha').value=new Date().toISOString().split('T')[0];document.getElementById('modal-nota').value='';agregarPataModal();document.getElementById('modal-posicion').style.display='flex';}
@@ -1465,6 +1542,12 @@ function guardarPosicionModal(){
 }
 function cerrarPosicion(id){posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));renderPosicionesAbiertas();}
 function cerrarTodasPosiciones(){if(confirm('¿Cerrar todas las posiciones?')){posicionesAbiertas=[];localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));renderPosicionesAbiertas();}}
+function resetearPosicionesDefault(){
+  if(!confirm('¿Restaurar posiciones del 17/03 (BPS 5950/5574 + CC 6374)?'))return;
+  posicionesAbiertas=JSON.parse(JSON.stringify(POSICIONES_DEFAULT_GGAL));
+  localStorage.setItem('pos_GGAL',JSON.stringify(posicionesAbiertas));
+  renderPosicionesAbiertas();
+}
 
 function renderPosicionesAbiertas(){
   const tbody=document.getElementById('posiciones-body');if(!tbody)return;
@@ -1477,7 +1560,8 @@ function renderPosicionesAbiertas(){
       const K=parseFloat(p.strike),cant=parseInt(p.cant)||1,sz=p.tipo==='S'?undSize:optSize;
       const prima=parseFloat(p.prima)||0,vi=p.tipo!=='S'?getVI(K,p.tipo):0;
       const g=p.tipo!=='S'?bsGreeks(S,K,T,r,vi,p.tipo):null;
-      const vBS=p.tipo==='S'?S:(g?bsPrice(S,K,T,r,vi,p.tipo):prima);
+      const chainLast=strikeLast&&strikeLast[K]?(p.tipo==='C'?(strikeLast[K].call||strikeLast[K].bidCall):p.tipo==='P'?(strikeLast[K].put||strikeLast[K].bidPut):null):null;
+      const vBS=p.tipo==='S'?S:(chainLast||(g?bsPrice(S,K,T,r,vi,p.tipo):prima));
       vEntry+=prima*cant*sz;vActual+=vBS*cant*sz;
       if(g){delta+=g.delta*cant*sz;gamma+=g.gamma*cant*sz;theta+=g.theta*cant*sz;vega+=g.vega*cant*sz;}
       else if(p.tipo==='S')delta+=cant*sz;
@@ -1505,7 +1589,17 @@ function renderPosicionesAbiertas(){
   set('pos-delta-total',totDelta.toFixed(2));set('pos-gamma-total',totGamma.toFixed(4));
   set('pos-theta-total',totTheta.toFixed(2),totTheta<0?'#ef4444':'#22c55e');
   set('pos-vega-total',totVega.toFixed(2));set('pos-capital-total','$'+fmtARS(totCapital));
-  set('pos-pnl-dia','0,00','#a0c4ff');
+  // P&L Día: calcular delta vs snapshot de ayer
+  const hoy=new Date().toISOString().slice(0,10);
+  let pnlDia=0,hasDia=false;
+  posicionesAbiertas.forEach(pos=>{
+    const snaps=pos.snapshotPnl||[];
+    const snapHoy=snaps.find(s=>s.fecha&&s.fecha.startsWith(hoy));
+    const snapAyer=snaps.filter(s=>s.fecha&&s.fecha<hoy).slice(-1)[0];
+    if(snapHoy&&snapAyer){pnlDia+=(snapHoy.pnl-snapAyer.pnl);hasDia=true;}
+  });
+  if(hasDia)set('pos-pnl-dia',fmtARS(pnlDia),pnlDia>=0?'#22c55e':'#ef4444');
+  else set('pos-pnl-dia','—','#a0c4ff');
 }
 
 // ─── ANALYTICS ────────────────────────────────────────────────────────────────
@@ -1593,13 +1687,14 @@ function cargarDatosEmbebidos(ticker) {
     strikesDisponibles.push(K);
     const viC = s.call?.vi || null;
     const viP = s.put?.vi || null;
+    const _p=(v)=>v?v/1000:null;
     strikeLast[K] = {
-      call: s.call?.ultimo || s.call?.cierre || null,
-      put: s.put?.ultimo || s.put?.cierre || null,
+      call: _p(s.call?.ultimo || s.call?.cierre || null),
+      put: _p(s.put?.ultimo || s.put?.cierre || null),
       viCall: viC && viC > 1 ? viC/100 : viC,
       viPut: viP && viP > 1 ? viP/100 : viP,
-      bidCall: s.call?.compra || null,
-      bidPut: s.put?.compra || null,
+      bidCall: _p(s.call?.compra || null),
+      bidPut: _p(s.put?.compra || null),
       callData: s.call,
       putData: s.put
     };
@@ -1628,9 +1723,9 @@ function cargarDatosEmbebidos(ticker) {
 
     callsH += `<tr class="${rowC}" style="cursor:pointer;" onclick="agregarDesdeChain('C',${K},${ld.call||0})">
       <td>${tickerC}${atmB}</td>
-      <td class="bid">${fmtNum(cd.compra)}</td>
-      <td class="last-val">${fmtNum(cd.ultimo||cd.cierre)}</td>
-      <td class="ask">${fmtNum(cd.venta)}</td>
+      <td class="bid">${fmtNum(cd.compra?cd.compra/1000:null)}</td>
+      <td class="last-val">${fmtNum((cd.ultimo||cd.cierre)?(cd.ultimo||cd.cierre)/1000:null)}</td>
+      <td class="ask">${fmtNum(cd.venta?cd.venta/1000:null)}</td>
       <td class="neu" style="font-size:11px;">${viCpct}</td>
       <td>${varBadge(cd.var_pct != null ? cd.var_pct+'%' : null)}</td>
       <td style="color:${gC&&gC.delta>0?'#22c55e':'#606070'};font-size:11px;">${gC?gC.delta.toFixed(3):'—'}</td>
@@ -1643,9 +1738,9 @@ function cargarDatosEmbebidos(ticker) {
 
     putsH += `<tr class="${rowP}" style="cursor:pointer;" onclick="agregarDesdeChain('P',${K},${ld.put||0})">
       <td>${tickerP}${atmB}</td>
-      <td class="bid">${fmtNum(pd.compra)}</td>
-      <td class="last-val">${fmtNum(pd.ultimo||pd.cierre)}</td>
-      <td class="ask">${fmtNum(pd.venta)}</td>
+      <td class="bid">${fmtNum(pd.compra?pd.compra/1000:null)}</td>
+      <td class="last-val">${fmtNum((pd.ultimo||pd.cierre)?(pd.ultimo||pd.cierre)/1000:null)}</td>
+      <td class="ask">${fmtNum(pd.venta?pd.venta/1000:null)}</td>
       <td class="neu" style="font-size:11px;">${viPpct}</td>
       <td>${varBadge(pd.var_pct != null ? pd.var_pct+'%' : null)}</td>
       <td style="color:${gP&&gP.delta<0?'#ef4444':'#606070'};font-size:11px;">${gP?gP.delta.toFixed(3):'—'}</td>
@@ -2007,12 +2102,13 @@ function calcularPrecioPromedio(){
   if(!raw)return;
   const comPct=parseFloat(document.getElementById('prom-comision').value)/100||0.005;
   const acciones=parseInt(document.getElementById('prom-acciones').value)||100;
+  const porContrato=document.getElementById('prom-por-contrato')?.checked||false;
   const ops=[];
   for(const linea of raw.split('\n')){
     const parts=linea.trim().split(/[\s,\/|]+/).filter(p=>p.trim());
     const nums=parts.map(p=>parseFloat(p.replace(/[^0-9.-]/g,''))).filter(n=>!isNaN(n)&&n>0);
     if(nums.length>=2){
-      const cant=nums[0],prima=nums[nums.length-1];
+      const cant=nums[0],prima=porContrato?nums[nums.length-1]/100:nums[nums.length-1];
       ops.push({cant,prima,strike:nums.length>=3?nums[1]:null});
     }
   }
