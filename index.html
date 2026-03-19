@@ -517,7 +517,7 @@
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
         <button onclick="abrirModalPosicion()" style="padding:7px 14px;background:var(--tk-color);color:white;border:none;border-radius:4px;font-weight:700;font-family:var(--font);cursor:pointer;font-size:12px;">+ Agregar posición</button>
         <button onclick="cerrarTodasPosiciones()" style="padding:7px 14px;background:none;color:#ef4444;border:1px solid #ef4444;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;">Cerrar todas</button>
-        <button onclick="resetearPosicionesDefault()" style="padding:7px 14px;background:none;color:#f59e0b;border:1px solid #f59e0b;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;" title="Restaura BPS 5950/5574 (prima 242/117.43) + CC CALL 6374 (prima 322.55) del 17/03">&#8634; Restaurar 17/03</button>
+        <button onclick="resetearPosicionesDefault()" style="padding:7px 14px;background:none;color:#f59e0b;border:1px solid #f59e0b;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;" title="Restaura posiciones default del ticker actual">&#8634; Restaurar default</button>
       </div>
       <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
         <div class="mini-stat"><div class="mini-stat-label">P&L Día</div><div id="pos-pnl-dia" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
@@ -943,7 +943,7 @@ function switchTicker(ticker, btn) {
 
   // Load data
   operaciones = JSON.parse(localStorage.getItem('pb_ops_' + ticker) || '[]');
-  posicionesAbiertas = JSON.parse(localStorage.getItem('pos_' + ticker) || '[]');
+  posicionesAbiertas = JSON.parse(localStorage.getItem('pos_' + ticker) || 'null') || JSON.parse(JSON.stringify(POSICIONES_DEFAULT_MAP[ticker] || []));
   renderOperaciones();
   fetchData();
   _fetchInterval = setInterval(fetchData, 15000);
@@ -1575,6 +1575,12 @@ const POSICIONES_DEFAULT_GGAL=[
    patas:[{tipo:'C',strike:6374,prima:322.55,last:null,cant:-1}],
    estrategia:'Venta de Call',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]}
 ];
+const POSICIONES_DEFAULT_YPFD=[
+  {id:1742342400000,fecha:'2026-03-19',nota:'CSP Caja 2 — PUT 55000 Abr26',ticker:'YPFD',optSize:100,undSize:1,
+   patas:[{tipo:'P',strike:55000,prima:550,last:null,cant:-1}],
+   estrategia:'Venta de Put',snapshotPnl:[{fecha:'2026-03-19T09:00:00.000Z',pnl:0}]}
+];
+const POSICIONES_DEFAULT_MAP={'GGAL':POSICIONES_DEFAULT_GGAL,'YPFD':POSICIONES_DEFAULT_YPFD};
 let posicionesAbiertas=(()=>{
   const saved=JSON.parse(localStorage.getItem('pos_GGAL')||'null');
   // Auto-fix: replace bad strike 6574→5574 and wrong prima 450.05→322.55 for CALL 6374
@@ -1626,9 +1632,11 @@ function guardarPosicionModal(){
 function cerrarPosicion(id){posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));renderPosicionesAbiertas();}
 function cerrarTodasPosiciones(){if(confirm('¿Cerrar todas las posiciones?')){posicionesAbiertas=[];localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));renderPosicionesAbiertas();}}
 function resetearPosicionesDefault(){
-  if(!confirm('¿Restaurar posiciones del 17/03 (BPS 5950/5574 + CC 6374)?'))return;
-  posicionesAbiertas=JSON.parse(JSON.stringify(POSICIONES_DEFAULT_GGAL));
-  localStorage.setItem('pos_GGAL',JSON.stringify(posicionesAbiertas));
+  const defaults=POSICIONES_DEFAULT_MAP[currentTicker];
+  if(!defaults||!defaults.length){alert('No hay posiciones default para '+currentTicker);return;}
+  if(!confirm(`¿Restaurar posiciones default de ${currentTicker}?`))return;
+  posicionesAbiertas=JSON.parse(JSON.stringify(defaults));
+  localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));
   renderPosicionesAbiertas();
 }
 
