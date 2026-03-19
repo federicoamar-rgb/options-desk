@@ -298,6 +298,9 @@
 }</code>
     </div>
     <div id="plaza-content">
+      <div id="pre-apertura-msg" style="display:none;text-align:center;padding:10px 16px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:4px;margin-bottom:8px;font-size:11px;color:#f59e0b;font-family:var(--font);">
+        ⏳ Cadena cargada — primas sin datos (mercado cerrado o pre-apertura). Se actualizarán al abrir la rueda.
+      </div>
       <div class="plaza-wrap">
         <div>
           <div class="plaza-header-calls"><span class="card-title calls-title">▲ CALLS</span><span class="card-sub">Click en fila → agrega al Builder</span></div>
@@ -845,6 +848,10 @@ const TICKER_CONFIG = {
   }
 };
 
+// ─── CONFIGURACIÓN FINANCIERA ─────────────────────────────────────────────────
+// Tasa libre de riesgo anual (caución 30d aproximada). Actualizar manualmente.
+const RF_ANUAL = 0.28;  // 28% — actualizar si cambia la tasa de caución
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let currentTicker = 'GGAL';
 let spotGGAL = null;
@@ -935,7 +942,7 @@ async function fetchData() {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(cfg.csvUrl + '&t=' + Date.now(), { signal: ctrl.signal });
+    const res = await fetch(cfg.csvUrl + '?t=' + Date.now(), { signal: ctrl.signal });
     clearTimeout(t);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
@@ -1004,7 +1011,7 @@ function render(rows) {
       strikeLast[K_num]={call:parseFloat(r[3])||null,put:parseFloat(r[10])||null,viCall:pVI(r[1]),viPut:pVI(r[8]),bidCall:parseFloat(r[2])||null,bidPut:parseFloat(r[9])||null};
     }
     const atm=isATM(strike);
-    const K=K_num,T=(diasVto||37)/365,rf=Math.log(1+0.40);
+    const K=K_num,T=(diasVto||37)/365,rf=Math.log(1+RF_ANUAL);
     const viC=strikeLast[K]?.viCall||0.60,viP=strikeLast[K]?.viPut||0.60;
     const gC=spotGGAL?bsGreeks(spotGGAL,K,T,rf,viC,'C'):null;
     const gP=spotGGAL?bsGreeks(spotGGAL,K,T,rf,viP,'P'):null;
@@ -1036,6 +1043,10 @@ function render(rows) {
   document.getElementById('calls-body').innerHTML=callsH;
   document.getElementById('puts-body').innerHTML=putsH;
   document.getElementById('strikes-body').innerHTML=strikesH;
+  // Aviso pre-apertura: cadena cargada pero sin primas
+  const todasVacias=strikesDisponibles.length>0&&Object.values(strikeLast).every(v=>!v.call&&!v.put&&!v.bidCall&&!v.bidPut);
+  const preEl=document.getElementById('pre-apertura-msg');
+  if(preEl)preEl.style.display=todasVacias?'block':'none';
   renderSmile(); sincronizarSliders(); saveHistoricoSesion();
 
   let bull='',ratio='',ratio2='',ratio3='',mar='',mar1='',mar2='';
