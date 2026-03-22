@@ -493,10 +493,11 @@
       </div>
       <div class="card" style="padding:14px;">
         <div class="chart-title">VI ATM — Histórico & IV Rank</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
           <div class="mini-stat"><div class="mini-stat-label">VI ATM Actual</div><div id="vi-atm-actual" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
           <div class="mini-stat"><div class="mini-stat-label">IV Rank</div><div id="vi-rank" class="mini-stat-val">—</div></div>
           <div class="mini-stat"><div class="mini-stat-label">IV Percentile</div><div id="vi-percentile" class="mini-stat-val">—</div></div>
+          <div class="mini-stat"><div class="mini-stat-label">Expected Move</div><div id="vi-em" class="mini-stat-val" style="color:#f59e0b;">—</div></div>
         </div>
         <canvas id="vi-historico-chart" height="140"></canvas>
       </div>
@@ -519,7 +520,7 @@
         <button onclick="cerrarTodasPosiciones()" style="padding:7px 14px;background:none;color:#ef4444;border:1px solid #ef4444;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;">Cerrar todas</button>
         <button onclick="resetearPosicionesDefault()" style="padding:7px 14px;background:none;color:#f59e0b;border:1px solid #f59e0b;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;" title="Restaura posiciones default del ticker actual">&#8634; Restaurar default</button>
       </div>
-      <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+      <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(8,1fr);gap:6px;">
         <div class="mini-stat"><div class="mini-stat-label">P&L Día</div><div id="pos-pnl-dia" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">P&L Total</div><div id="pos-pnl-total" class="mini-stat-val">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Δ Delta</div><div id="pos-delta-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
@@ -527,6 +528,7 @@
         <div class="mini-stat"><div class="mini-stat-label">Θ Theta</div><div id="pos-theta-total" class="mini-stat-val">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">ν Vega</div><div id="pos-vega-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Capital</div><div id="pos-capital-total" class="mini-stat-val" style="color:#f59e0b;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">Break-even</div><div id="pos-breakeven" class="mini-stat-val" style="color:#f59e0b;font-size:11px;">—</div></div>
       </div>
       <div class="pos-table" style="margin-bottom:12px;">
         <table style="width:100%;border-collapse:collapse;">
@@ -1027,6 +1029,14 @@ function render(rows) {
     }
     const atm=isATM(strike);
     const K=K_num,T=(diasVto||37)/365,rf=Math.log(1+RF_ANUAL);
+    // VAR% client-side tracking
+    const _prevKey=`${currentTicker}_${K_num}`;
+    const _prevP=_prevChainPrices[_prevKey]||{};
+    const _clLast=parseFloat(r[3]),_ptLast=parseFloat(r[10]);
+    const _callVar=(!isNaN(_clLast)&&_clLast>0&&_prevP.call>0)?((_clLast-_prevP.call)/_prevP.call*100):null;
+    const _putVar=(!isNaN(_ptLast)&&_ptLast>0&&_prevP.put>0)?((_ptLast-_prevP.put)/_prevP.put*100):null;
+    const callVarStr=_callVar!==null?(_callVar>=0?'+':'')+_callVar.toFixed(2)+'%':(r[5]||'');
+    const putVarStr=_putVar!==null?(_putVar>=0?'+':'')+_putVar.toFixed(2)+'%':(r[12]||'');
     const viC=strikeLast[K]?.viCall||0.60,viP=strikeLast[K]?.viPut||0.60;
     const gC=spotGGAL?bsGreeks(spotGGAL,K,T,rf,viC,'C'):null;
     const gP=spotGGAL?bsGreeks(spotGGAL,K,T,rf,viP,'P'):null;
@@ -1037,7 +1047,7 @@ function render(rows) {
     const atmB=atm?` <span style="background:${cfg.color};color:#fff;font-size:9px;padding:1px 3px;border-radius:2px;font-weight:700;">ATM</span>`:'';
     callsH+=`<tr class="${rowC}" style="cursor:pointer;" onclick="agregarDesdeChain('C',${K},${parseFloat(r[3])||0})">
       <td>${r[0]}${atmB}</td><td class="bid">${fmtNum(r[2])}</td><td class="last-val">${fmtNum(r[3])}</td><td class="ask">${fmtNum(r[4])}</td>
-      <td class="neu" style="font-size:11px;">${r[1]||'<span class="empty">—</span>'}</td><td>${varBadge(r[5])}</td>
+      <td class="neu" style="font-size:11px;">${r[1]||'<span class="empty">—</span>'}</td><td>${varBadge(callVarStr)}</td>
       <td style="color:${gC&&gC.delta>0?'#22c55e':'#606070'};font-size:11px;">${gC?gC.delta.toFixed(3):'—'}</td>
       <td style="color:#a0c4ff;font-size:11px;">${gC?gC.gamma.toFixed(4):'—'}</td>
       <td style="color:${gC&&gC.theta<0?'#ef4444':'#22c55e'};font-size:11px;">${gC?gC.theta.toFixed(2):'—'}</td>
@@ -1047,7 +1057,7 @@ function render(rows) {
     if(r[7]){
       putsH+=`<tr class="${rowP}" style="cursor:pointer;" onclick="agregarDesdeChain('P',${K},${parseFloat(r[10])||0})">
         <td>${r[7]}${atmB}</td><td class="bid">${fmtNum(r[9])}</td><td class="last-val">${fmtNum(r[10])}</td><td class="ask">${fmtNum(r[11])}</td>
-        <td class="neu" style="font-size:11px;">${r[8]||'<span class="empty">—</span>'}</td><td>${varBadge(r[12])}</td>
+        <td class="neu" style="font-size:11px;">${r[8]||'<span class="empty">—</span>'}</td><td>${varBadge(putVarStr)}</td>
         <td style="color:${gP&&gP.delta<0?'#ef4444':'#606070'};font-size:11px;">${gP?gP.delta.toFixed(3):'—'}</td>
         <td style="color:#a0c4ff;font-size:11px;">${gP?gP.gamma.toFixed(4):'—'}</td>
         <td style="color:${gP&&gP.theta<0?'#ef4444':'#22c55e'};font-size:11px;">${gP?gP.theta.toFixed(2):'—'}</td>
@@ -1089,6 +1099,8 @@ function render(rows) {
   const ids=['bull','ratio','ratio2','ratio3','mariposa','mariposa1','mariposa2','bear','pratio','pratio2','pratio3','pmariposa','pmariposa1','pmariposa2','lanz','sint'];
   const vals=[bull,ratio,ratio2,ratio3,mar,mar1,mar2,bear,pr,pr2,pr3,pm,pm1,pm2,lanz,sint];
   ids.forEach((id,i)=>{const el=document.getElementById(id+'-body');if(el)el.innerHTML=vals[i];});
+  // Update prev prices for VAR% next cycle
+  for(let _i=2;_i<=30;_i++){const _rr=rows[_i];if(!_rr||!_rr[0])continue;const _kk=parseFloat((_rr[6]||'').toString().trim());if(!isNaN(_kk)&&_kk>0){const _pk=`${currentTicker}_${_kk}`;if(!_prevChainPrices[_pk])_prevChainPrices[_pk]={};const _cl=parseFloat(_rr[3]),_pl=parseFloat(_rr[10]);if(!isNaN(_cl)&&_cl>0)_prevChainPrices[_pk].call=_cl;if(!isNaN(_pl)&&_pl>0)_prevChainPrices[_pk].put=_pl;}}
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
@@ -1128,6 +1140,7 @@ function getVI(strike,tipo){const K=parseFloat(strike);const ld=strikeLast[K];if
 let patas=[],tipoDefault='C',payoffChart=null,pataId=0;
 let operaciones=JSON.parse(localStorage.getItem('pb_ops_GGAL')||'[]');
 let graficoDiasActual=null,graficoVIActual=0;
+let _prevChainPrices = {}; // `${ticker}_${strike}` → {call, put}
 
 function setTipoDefault(tipo,btn){tipoDefault=tipo;document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active-call','active-put'));btn.classList.add(tipo==='C'?'active-call':'active-put');}
 function agregarPata(){const id=pataId++;patas.push({id,tipo:tipoDefault,strike:'',prima:'',cant:1,last:''});renderPatas();}
@@ -1476,6 +1489,17 @@ function agregarDesdeChain(tipo,strike,last){
 let smileChart=null,smileChart2=null,viHistChart=null;
 function _smileSpotPlugin(spotIdx){return{id:'smileSP',afterDraw(c){if(spotIdx<0)return;const{ctx:cx,chartArea:a,scales:sc}=c;const x=sc.x.getPixelForValue(spotIdx);cx.save();cx.setLineDash([5,3]);cx.strokeStyle='#f59e0b';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x,a.top);cx.lineTo(x,a.bottom);cx.stroke();cx.fillStyle='#f59e0b';cx.font='bold 10px Calibri,Arial';cx.fillText('SPOT',x+4,a.top+12);cx.restore();}};}
 
+function _fitParabola(ys){
+  const pts=ys.map((y,i)=>[i,y]).filter(([,y])=>y!==null&&!isNaN(y));
+  if(pts.length<3)return null;
+  let S0=0,S1=0,S2=0,S3=0,S4=0,T0=0,T1=0,T2=0;
+  for(const[x,y]of pts){S0+=1;S1+=x;S2+=x*x;S3+=x*x*x;S4+=x*x*x*x;T0+=y;T1+=x*y;T2+=x*x*y;}
+  const M=[[S4,S3,S2,T2],[S3,S2,S1,T1],[S2,S1,S0,T0]];
+  for(let c=0;c<3;c++){let mr=c;for(let r=c+1;r<3;r++)if(Math.abs(M[r][c])>Math.abs(M[mr][c]))mr=r;[M[c],M[mr]]=[M[mr],M[c]];if(Math.abs(M[c][c])<1e-12)return null;for(let r=c+1;r<3;r++){const f=M[r][c]/M[c][c];for(let j=c;j<=3;j++)M[r][j]-=f*M[c][j];}}
+  const cc=M[2][3]/M[2][2],b=(M[1][3]-M[1][2]*cc)/M[1][1],a=(M[0][3]-M[0][2]*cc-M[0][1]*b)/M[0][0];
+  return ys.map((_,i)=>{const v=a*i*i+b*i+cc;return(v>5&&v<200)?v:null;});
+}
+
 function renderSmile(){
   const ctx=document.getElementById('smile-chart')?.getContext('2d');
   const skewEl=document.getElementById('smile-skew');
@@ -1489,7 +1513,8 @@ function renderSmile(){
   smileChart=new Chart(ctx,{type:'line',plugins:[_smileSpotPlugin(spotIdx)],
     data:{labels:strikes.map(k=>k.toLocaleString('es-AR')),datasets:[
       {label:'VI Calls',data:viCalls,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.08)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
-      {label:'VI Puts',data:viPuts,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false}
+      {label:'VI Puts',data:viPuts,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
+      {label:'Curva Teórica',data:(()=>{const fc=_fitParabola([...viCalls]),fp=_fitParabola([...viPuts]);if(!fc&&!fp)return[];return viCalls.map((_,i)=>{const a=fc?fc[i]:null,b2=fp?fp[i]:null;return(a&&b2)?(a+b2)/2:a||b2;});})(),borderColor:'#f97316',backgroundColor:'transparent',borderDash:[5,4],borderWidth:2,pointRadius:0,tension:0,spanGaps:true}
     ]},
     options:{responsive:true,animation:false,plugins:{legend:{display:true,labels:{color:'#606070',font:{family:'Calibri,Arial',size:11}}},tooltip:{backgroundColor:'#0d0d18',bodyColor:'#fff',callbacks:{label:c=>`${c.dataset.label}: ${c.raw?.toFixed(1)}%`}}},
       scales:{x:{ticks:{maxTicksLimit:8,color:'#505060',font:{family:'Calibri,Arial',size:10}},grid:{color:'#0d0d18'}},y:{ticks:{color:'#505060',font:{family:'Calibri,Arial',size:10},callback:v=>v+'%'},grid:{color:'#0d0d18'}}}}
@@ -1529,7 +1554,8 @@ function renderVolatilityDashboard(){
     const spotIdx2=spotGGAL?strikes.reduce((bi,k,i)=>Math.abs(k-spotGGAL)<Math.abs(strikes[bi]-spotGGAL)?i:bi,0):-1;
     smileChart2=new Chart(ctx2,{type:'line',plugins:[_smileSpotPlugin(spotIdx2)],data:{labels:strikes.map(k=>k.toLocaleString('es-AR')),datasets:[
       {label:'VI Calls',data:viCalls2,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
-      {label:'VI Puts',data:viPuts2,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false}
+      {label:'VI Puts',data:viPuts2,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
+      {label:'Curva Teórica',data:(()=>{const fc=_fitParabola([...viCalls2]),fp=_fitParabola([...viPuts2]);if(!fc&&!fp)return[];return viCalls2.map((_,i)=>{const a=fc?fc[i]:null,b2=fp?fp[i]:null;return(a&&b2)?(a+b2)/2:a||b2;});})(),borderColor:'#f97316',backgroundColor:'transparent',borderDash:[5,4],borderWidth:2,pointRadius:0,tension:0,spanGaps:true}
     ]},options:{responsive:true,animation:false,plugins:{legend:{labels:{color:'#606070',font:{family:'Calibri,Arial',size:11}}}},
       scales:{x:{ticks:{maxTicksLimit:8,color:'#606070',font:{family:'Calibri,Arial',size:10}},grid:{color:'#1a1a1a'}},y:{ticks:{color:'#606070',font:{family:'Calibri,Arial',size:10},callback:v=>v+'%'},grid:{color:'#1a1a1a'}}}}
     });}
@@ -1559,6 +1585,8 @@ function renderVolatilityDashboard(){
     const rEl=document.getElementById('vi-rank'),pEl=document.getElementById('vi-percentile');
     if(rEl){rEl.textContent=rank+'%';rEl.style.color=rank>70?'#ef4444':rank>30?'#f59e0b':'#22c55e';}
     if(pEl){pEl.textContent=pctile+'%';pEl.style.color=pctile>70?'#ef4444':pctile>30?'#f59e0b':'#22c55e';}
+    const emEl=document.getElementById('vi-em');
+    if(emEl&&spotGGAL&&viC_atm>0&&diasVto){const em=spotGGAL*viC_atm*Math.sqrt(diasVto/365);emEl.textContent='±$'+fmtARS(Math.round(em));}
     const ctxH=document.getElementById('vi-historico-chart')?.getContext('2d');
     if(ctxH){if(viHistChart)viHistChart.destroy();
       viHistChart=new Chart(ctxH,{type:'line',data:{labels:hist.map(h=>h.fecha.slice(5)),datasets:[{label:'VI ATM',data:vals,borderColor:'#a0c4ff',backgroundColor:'rgba(160,196,255,0.08)',tension:0.3,pointRadius:2,borderWidth:2}]},
@@ -1640,6 +1668,17 @@ function resetearPosicionesDefault(){
   renderPosicionesAbiertas();
 }
 
+function _calcBEsCombinados(){
+  const S0=spotGGAL||6600;
+  const lo=S0*0.5,hi=S0*1.5,steps=600,step=(hi-lo)/steps;
+  const allP=posicionesAbiertas.flatMap(pos=>pos.patas.map(p=>({...p,_opt:pos.optSize||100,_und:pos.undSize||1})));
+  if(!allP.length)return[];
+  function pnlAt(S){return allP.reduce((t,p)=>{const K=parseFloat(p.strike),prima=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1,sz=p.tipo==='S'?p._und:p._opt;let pl=0;if(p.tipo==='C')pl=(Math.max(S-K,0)-prima)*cant*sz;else if(p.tipo==='P')pl=(Math.max(K-S,0)-prima)*cant*sz;else pl=(S-K)*cant*sz;return t+pl;},0);}
+  const bes=[];let prev=pnlAt(lo);
+  for(let i=1;i<=steps;i++){const S=lo+i*step;const cur=pnlAt(S);if(prev*cur<0){bes.push(Math.round(lo+(i-0.5)*step));}prev=cur;}
+  return bes;
+}
+
 function renderPosicionesAbiertas(){
   const tbody=document.getElementById('posiciones-body');if(!tbody)return;
   const S=spotGGAL||6600,T=(diasVto||37)/365,r=Math.log(1+RF_ANUAL);
@@ -1681,6 +1720,9 @@ function renderPosicionesAbiertas(){
   set('pos-delta-total',totDelta.toFixed(2));set('pos-gamma-total',totGamma.toFixed(4));
   set('pos-theta-total',totTheta.toFixed(2),totTheta<0?'#ef4444':'#22c55e');
   set('pos-vega-total',totVega.toFixed(2));set('pos-capital-total','$'+fmtARS(totCapital));
+  const bes=_calcBEsCombinados();
+  const beEl=document.getElementById('pos-breakeven');
+  if(beEl)beEl.textContent=bes.length?bes.map(b=>'$'+fmtARS(b)).join(' · '):'—';
   // P&L Día: calcular delta vs snapshot de ayer
   const hoy=new Date().toISOString().slice(0,10);
   let pnlDia=0,hasDia=false;
