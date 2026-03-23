@@ -2097,7 +2097,7 @@ function renderNeutralizador(){
     const dC=d>0?"#22c55e":d<0?"#ef4444":"#888",tC=t<0?"#ef4444":"#22c55e";
     html+=`<tr style="border-bottom:1px solid #1a1a1a;"><td style="font-family:var(--font);font-size:11px;padding:4px 6px;color:#c0c0c0;">${pos.estrategia}</td><td style="text-align:right;padding:4px 6px;color:${dC};font-weight:700;">${d.toFixed(2)}</td><td style="text-align:right;padding:4px 6px;color:#a0c4ff;">${g.toFixed(4)}</td><td style="text-align:right;padding:4px 6px;color:${tC};">${t.toFixed(2)}</td><td style="text-align:right;padding:4px 6px;color:#f59e0b;">${v.toFixed(2)}</td></tr>`;
   });
-  tbody.innerHTML=html||"<tr><td colspan="5" style="padding:12px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones abiertas.</td></tr>";
+  tbody.innerHTML=html||'<tr><td colspan="5" style="padding:12px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones abiertas.</td></tr>';
   const set=(id,val,c)=>{const el=document.getElementById(id);if(el){el.textContent=val;if(c)el.style.color=c;}};
   set("nt-delta",totD.toFixed(2),totD>0?"#22c55e":totD<0?"#ef4444":"#888");
   set("nt-gamma",totG.toFixed(4));
@@ -2156,7 +2156,7 @@ function calcularNeutral(){
     if(tbl)tbl.style.display="none";
     return;
   }
-  if(resEl)resEl.innerHTML=`${gLabel} total: <b style="color:${totG>0?""#22c55e"":""#ef4444"";">${totG.toFixed(4)}</b> → neutralizar con el instrumento elegido.`;
+  if(resEl)resEl.innerHTML=`${gLabel} total: <b style="color:${totG>0?'#22c55e':'#ef4444'};">${totG.toFixed(4)}</b> → neutralizar con el instrumento elegido.`;
   tbody.innerHTML=rows.map((row,idx)=>{
     const qtyLabel=row.tipo==="S"?`${row.qty>=0?"+":""}${Math.round(row.qty)} acc`:`${row.qty>=0?"+":""}${row.qty.toFixed(2)} ctr`;
     const qC=row.qty>0?"#22c55e":"#ef4444";
