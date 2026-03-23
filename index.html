@@ -1644,8 +1644,8 @@ function renderVolatilityDashboard(){
     skewPanel.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--font);">
       <div class="mini-stat"><div class="mini-stat-label">Risk Reversal</div><div class="mini-stat-val" style="color:${rr>0?'#ef4444':'#22c55e'};">${rr>=0?'+':''}${rr.toFixed(1)}%</div></div>
       <div class="mini-stat"><div class="mini-stat-label">Butterfly</div><div class="mini-stat-val" style="color:#a0c4ff;">${bf>=0?'+':''}${bf.toFixed(1)}%</div></div>
-      <div class="mini-stat"><div class="mini-stat-label">VI mín</div><div class="mini-stat-val" style="color:#22c55e;">${(v=>{return isFinite(v)?v.toFixed(1)+'%':'—';})(Math.min(...[...viCalls,...viPuts].filter(v=>v!==null&&!isNaN(v)&&v>0))}</div></div>
-      <div class="mini-stat"><div class="mini-stat-label">VI máx</div><div class="mini-stat-val" style="color:#ef4444;">${(v=>{return isFinite(v)?v.toFixed(1)+'%':'—';})(Math.max(...[...viCalls,...viPuts].filter(v=>v!==null&&!isNaN(v)&&v>0))}</div></div>
+      <div class="mini-stat"><div class="mini-stat-label">VI mín</div><div class="mini-stat-val" style="color:#22c55e;">${(()=>{const v=Math.min(...[...viCalls,...viPuts].filter(x=>x!==null&&!isNaN(x)&&x>0));return isFinite(v)?v.toFixed(1)+'%':'—';})()}</div></div>
+      <div class="mini-stat"><div class="mini-stat-label">VI máx</div><div class="mini-stat-val" style="color:#ef4444;">${(()=>{const v=Math.max(...[...viCalls,...viPuts].filter(x=>x!==null&&!isNaN(x)&&x>0));return isFinite(v)?v.toFixed(1)+'%':'—';})()}</div></div>
     </div>`;}
   const hist=JSON.parse(localStorage.getItem('vi_hist_'+currentTicker)||'[]');
   const hoy=new Date().toISOString().split('T')[0];
