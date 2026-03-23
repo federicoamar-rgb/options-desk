@@ -1017,6 +1017,7 @@ function switchTicker(ticker, btn) {
   operaciones = JSON.parse(localStorage.getItem('pb_ops_' + ticker) || '[]');
   posicionesAbiertas = JSON.parse(localStorage.getItem('pos_' + ticker) || 'null') || JSON.parse(JSON.stringify(POSICIONES_DEFAULT_MAP[ticker] || []));
   renderOperaciones();
+  _loadPositionsFromServer(ticker);
   fetchData();
   _fetchInterval = setInterval(fetchData, 15000);
 }
@@ -1672,7 +1673,10 @@ const POSICIONES_DEFAULT_GGAL=[
    estrategia:'📈 Bull Spread Put',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]},
   {id:1742169600001,fecha:'2026-03-17',nota:'CC Defensivo Caja 1 — CALL 6374 Abr26',ticker:'GGAL',optSize:100,undSize:1,
    patas:[{tipo:'C',strike:6374,prima:322.55,last:null,cant:-1}],
-   estrategia:'Venta de Call',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]}
+   estrategia:'Venta de Call',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]},
+  {id:1742169600003,fecha:'2026-03-17',nota:'Acciones GGAL — 100 acc @ PPP $7,996 (BALANZ)',ticker:'GGAL',optSize:1,undSize:100,
+   patas:[{tipo:'S',strike:7996,prima:7996,last:null,cant:1}],
+   estrategia:'Posición Accionaria',snapshotPnl:[{fecha:'2026-03-17T09:00:00.000Z',pnl:0}]}
 ];
 const POSICIONES_DEFAULT_YPFD=[
   {id:1742342400000,fecha:'2026-03-19',nota:'CSP Caja 2 — PUT 55000 Abr26',ticker:'YPFD',optSize:100,undSize:1,
@@ -1725,18 +1729,39 @@ function guardarPosicionModal(){
   });
   if(!patasModal.length){alert('Agregá al menos una pata');return;}
   const nueva={id:Date.now(),fecha,nota,ticker:currentTicker,optSize,undSize,patas:patasModal,estrategia:detectarEstrategia(patasModal),snapshotPnl:[{fecha:new Date().toISOString(),pnl:0}]};
-  posicionesAbiertas.push(nueva);localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));
+  posicionesAbiertas.push(nueva);_persistPositions(currentTicker,posicionesAbiertas);
   cerrarModal();renderPosicionesAbiertas();
 }
-function cerrarPosicion(id){posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));renderPosicionesAbiertas();}
-function cerrarTodasPosiciones(){if(confirm('¿Cerrar todas las posiciones?')){posicionesAbiertas=[];localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));renderPosicionesAbiertas();}}
+function cerrarPosicion(id){posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);_persistPositions(currentTicker,posicionesAbiertas);renderPosicionesAbiertas();}
+function cerrarTodasPosiciones(){if(confirm('¿Cerrar todas las posiciones?')){posicionesAbiertas=[];_persistPositions(currentTicker,posicionesAbiertas);renderPosicionesAbiertas();}}
 function resetearPosicionesDefault(){
   const defaults=POSICIONES_DEFAULT_MAP[currentTicker];
   if(!defaults||!defaults.length){alert('No hay posiciones default para '+currentTicker);return;}
   if(!confirm(`¿Restaurar posiciones default de ${currentTicker}?`))return;
   posicionesAbiertas=JSON.parse(JSON.stringify(defaults));
-  localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));
+  _persistPositions(currentTicker,posicionesAbiertas);
   renderPosicionesAbiertas();
+}
+
+// ─── PERSISTENCE HELPERS (localStorage + server) ─────────────────────────────
+function _persistPositions(ticker, positions){
+  localStorage.setItem('pos_'+ticker, JSON.stringify(positions));
+  fetch('http://localhost:8765/save_positions',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ticker, positions})
+  }).catch(()=>{});
+}
+async function _loadPositionsFromServer(ticker){
+  try{
+    const r=await fetch(`http://localhost:8765/load_positions?ticker=${ticker}`,{signal:AbortSignal.timeout(2000)});
+    if(!r.ok)return;
+    const d=await r.json();
+    if(d.ok&&Array.isArray(d.positions)){
+      posicionesAbiertas=d.positions;
+      localStorage.setItem('pos_'+ticker,JSON.stringify(d.positions));
+      renderPosicionesAbiertas();
+    }
+  }catch(_){}
 }
 
 function _calcBEsCombinados(){
@@ -1813,7 +1838,7 @@ function setPataLast(posId,legIdx,val){
   if(!pos||!pos.patas[legIdx])return;
   const v=parseFloat(val);
   pos.patas[legIdx].last=isNaN(v)||v<=0?null:v;
-  localStorage.setItem('pos_'+currentTicker,JSON.stringify(posicionesAbiertas));
+  _persistPositions(currentTicker,posicionesAbiertas);
   renderPosicionesAbiertas();
 }
 
