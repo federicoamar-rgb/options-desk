@@ -227,12 +227,12 @@
   <button class="tk-btn" id="tkbtn-PAMP" onclick="switchTicker('PAMP',this)">
     <div class="tk-dot" style="background:#3b82f6;"></div>
     <span style="color:#3b82f6;">PAMP</span>
-    <span class="tk-sub" id="tksub-PAMP">Configurar</span>
+    <span class="tk-sub" id="tksub-PAMP">—</span>
   </button>
   <button class="tk-btn" id="tkbtn-YPFD" onclick="switchTicker('YPFD',this)">
     <div class="tk-dot" style="background:#22c55e;"></div>
     <span style="color:#22c55e;">YPFD</span>
-    <span class="tk-sub" id="tksub-YPFD">Configurar</span>
+    <span class="tk-sub" id="tksub-YPFD">—</span>
   </button>
 </div>
 
@@ -258,6 +258,7 @@
       <button class="nav-tab" onclick="showTab('mariposa',this)">Mariposa</button>
       <button class="nav-tab" onclick="showTab('precio-prom',this)">Precio Prom</button>
       <button class="nav-tab" onclick="showTab('flujo-gex',this)">Flujo & GEX</button>
+      <button class="nav-tab" onclick="showTab('neutralizador',this)">Neutralizador</button>
     </div>
     <div class="header-right">
       <div class="stat-block">
@@ -840,6 +841,75 @@
     </div>
   </div>
 
+  <!-- ══ NEUTRALIZADOR DE GRIEGAS ══════════════════════════════════════════════ -->
+  <div id="tab-neutralizador" class="tab-content">
+    <div style="padding:4px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <!-- Portfolio griegas -->
+        <div class="card" style="padding:14px;">
+          <div class="chart-title" style="margin-bottom:10px;">Portfolio — Griegas actuales</div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr>
+                <th style="text-align:left;padding:4px 6px;font-size:10px;color:#606070;">Estrategia</th>
+                <th style="text-align:right;padding:4px 6px;font-size:10px;color:#22c55e;">Δ Delta</th>
+                <th style="text-align:right;padding:4px 6px;font-size:10px;color:#a0c4ff;">Γ Gamma</th>
+                <th style="text-align:right;padding:4px 6px;font-size:10px;color:#ef4444;">Θ Theta</th>
+                <th style="text-align:right;padding:4px 6px;font-size:10px;color:#f59e0b;">ν Vega</th>
+              </tr></thead>
+              <tbody id="neutral-portfolio-body"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+            <div class="mini-stat"><div class="mini-stat-label">Δ Delta total</div><div id="nt-delta" class="mini-stat-val">—</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Γ Gamma total</div><div id="nt-gamma" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">Θ Theta total</div><div id="nt-theta" class="mini-stat-val">—</div></div>
+            <div class="mini-stat"><div class="mini-stat-label">ν Vega total</div><div id="nt-vega" class="mini-stat-val" style="color:#f59e0b;">—</div></div>
+          </div>
+        </div>
+        <!-- Control cobertura -->
+        <div class="card" style="padding:14px;">
+          <div class="chart-title" style="margin-bottom:10px;">Cobertura sugerida</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+            <span style="font-size:12px;color:#888;font-family:var(--font);">Neutralizar:</span>
+            <select id="neutral-griega" style="padding:5px 8px;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#f0f0f0;font-family:var(--font);font-size:12px;">
+              <option value="delta">Δ Delta</option>
+              <option value="gamma">Γ Gamma</option>
+              <option value="theta">Θ Theta</option>
+              <option value="vega">ν Vega</option>
+            </select>
+            <span style="font-size:12px;color:#888;font-family:var(--font);">con:</span>
+            <select id="neutral-inst" style="padding:5px 8px;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#f0f0f0;font-family:var(--font);font-size:12px;">
+              <option value="all">Calls + Puts</option>
+              <option value="call">Solo Calls</option>
+              <option value="put">Solo Puts</option>
+              <option value="spot">Acciones (spot)</option>
+            </select>
+            <button onclick="calcularNeutral()" style="padding:5px 14px;background:var(--tk-color);color:white;border:none;border-radius:4px;font-weight:700;font-family:var(--font);cursor:pointer;font-size:12px;">Calcular</button>
+          </div>
+          <div id="neutral-resultado" style="font-size:12px;color:#606080;font-family:var(--font);margin-bottom:8px;">Seleccioná una griega y hacé clic en Calcular.</div>
+          <div style="overflow-x:auto;">
+            <table id="neutral-sugerencias-tbl" style="width:100%;border-collapse:collapse;display:none;">
+              <thead><tr>
+                <th style="text-align:left;font-size:10px;color:#606070;padding:4px 8px;background:#0d0d18;">Instrumento</th>
+                <th style="text-align:right;font-size:10px;color:#606070;padding:4px 8px;background:#0d0d18;">Griega/u</th>
+                <th style="text-align:right;font-size:10px;color:#606070;padding:4px 8px;background:#0d0d18;">Contratos</th>
+                <th style="text-align:right;font-size:10px;color:#606070;padding:4px 8px;background:#0d0d18;">Prima</th>
+                <th style="text-align:right;font-size:10px;color:#606070;padding:4px 8px;background:#0d0d18;">Costo total</th>
+              </tr></thead>
+              <tbody id="neutral-sugerencias-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Impacto post-cobertura -->
+      <div class="card" style="padding:14px;">
+        <div class="chart-title" style="margin-bottom:8px;">Impacto post-cobertura — griegas resultantes</div>
+        <div id="neutral-postcover" style="font-size:12px;color:#606080;font-family:var(--font);">Hacé clic en una fila de la tabla de coberturas para ver el impacto en las 4 griegas.</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1127,6 +1197,7 @@ function showTab(name,btn){
   if(name==='historico')renderHistorico();
   if(name==='mariposa')autoPopularMariposa();
   if(name==='flujo-gex')renderFlujoGex();
+  if(name==='neutralizador')renderNeutralizador();
 }
 
 // ─── BLACK-SCHOLES ────────────────────────────────────────────────────────────
@@ -1573,8 +1644,8 @@ function renderVolatilityDashboard(){
     skewPanel.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family:var(--font);">
       <div class="mini-stat"><div class="mini-stat-label">Risk Reversal</div><div class="mini-stat-val" style="color:${rr>0?'#ef4444':'#22c55e'};">${rr>=0?'+':''}${rr.toFixed(1)}%</div></div>
       <div class="mini-stat"><div class="mini-stat-label">Butterfly</div><div class="mini-stat-val" style="color:#a0c4ff;">${bf>=0?'+':''}${bf.toFixed(1)}%</div></div>
-      <div class="mini-stat"><div class="mini-stat-label">VI mín</div><div class="mini-stat-val" style="color:#22c55e;">${Math.min(...[...viCalls,...viPuts].filter(Boolean)).toFixed(1)}%</div></div>
-      <div class="mini-stat"><div class="mini-stat-label">VI máx</div><div class="mini-stat-val" style="color:#ef4444;">${Math.max(...[...viCalls,...viPuts].filter(Boolean)).toFixed(1)}%</div></div>
+      <div class="mini-stat"><div class="mini-stat-label">VI mín</div><div class="mini-stat-val" style="color:#22c55e;">${(v=>{return isFinite(v)?v.toFixed(1)+'%':'—';})(Math.min(...[...viCalls,...viPuts].filter(v=>v!==null&&!isNaN(v)&&v>0))}</div></div>
+      <div class="mini-stat"><div class="mini-stat-label">VI máx</div><div class="mini-stat-val" style="color:#ef4444;">${(v=>{return isFinite(v)?v.toFixed(1)+'%':'—';})(Math.max(...[...viCalls,...viPuts].filter(v=>v!==null&&!isNaN(v)&&v>0))}</div></div>
     </div>`;}
   const hist=JSON.parse(localStorage.getItem('vi_hist_'+currentTicker)||'[]');
   const hoy=new Date().toISOString().split('T')[0];
@@ -2008,6 +2079,133 @@ function _bsDelta(S,K,t,r,sigma,tipo){
   const N=x=>(1+erf(x/Math.sqrt(2)))/2;
   return tipo==='C'?N(d1):N(d1)-1;
 }
+// Neutralizador de Griegas
+function renderNeutralizador(){
+  const tbody=document.getElementById("neutral-portfolio-body");if(!tbody)return;
+  const S=spotGGAL||6600,T=(diasVto||37)/365,r=Math.log(1+RF_ANUAL);
+  let totD=0,totG=0,totT=0,totV=0,html='';
+  posicionesAbiertas.forEach(pos=>{
+    const os=pos.optSize||100,us=pos.undSize||1;
+    let d=0,g=0,t=0,v=0;
+    pos.patas.forEach(p=>{
+      const K=parseFloat(p.strike),cant=parseInt(p.cant)||1,sz=p.tipo==="S"?us:os;
+      if(p.tipo==="S"){d+=cant*sz;return;}
+      const vi=getVI(K,p.tipo),gr=bsGreeks(S,K,T,r,vi,p.tipo);
+      if(gr){d+=gr.delta*cant*sz;g+=gr.gamma*cant*sz;t+=gr.theta*cant*sz;v+=gr.vega*cant*sz;}
+    });
+    totD+=d;totG+=g;totT+=t;totV+=v;
+    const dC=d>0?"#22c55e":d<0?"#ef4444":"#888",tC=t<0?"#ef4444":"#22c55e";
+    html+=`<tr style="border-bottom:1px solid #1a1a1a;"><td style="font-family:var(--font);font-size:11px;padding:4px 6px;color:#c0c0c0;">${pos.estrategia}</td><td style="text-align:right;padding:4px 6px;color:${dC};font-weight:700;">${d.toFixed(2)}</td><td style="text-align:right;padding:4px 6px;color:#a0c4ff;">${g.toFixed(4)}</td><td style="text-align:right;padding:4px 6px;color:${tC};">${t.toFixed(2)}</td><td style="text-align:right;padding:4px 6px;color:#f59e0b;">${v.toFixed(2)}</td></tr>`;
+  });
+  tbody.innerHTML=html||"<tr><td colspan="5" style="padding:12px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones abiertas.</td></tr>";
+  const set=(id,val,c)=>{const el=document.getElementById(id);if(el){el.textContent=val;if(c)el.style.color=c;}};
+  set("nt-delta",totD.toFixed(2),totD>0?"#22c55e":totD<0?"#ef4444":"#888");
+  set("nt-gamma",totG.toFixed(4));
+  set("nt-theta",totT.toFixed(2),totT<0?"#ef4444":"#22c55e");
+  set("nt-vega",totV.toFixed(2));
+}
+
+function calcularNeutral(){
+  const griega=document.getElementById("neutral-griega")?.value||"delta";
+  const inst=document.getElementById("neutral-inst")?.value||"all";
+  const S=spotGGAL||6600,T=(diasVto||37)/365,r=Math.log(1+RF_ANUAL),optSize=100;
+  const gLabel={delta:"Δ Delta",gamma:"Γ Gamma",theta:"Θ Theta",vega:"ν Vega"}[griega];
+  let totG=0;
+  posicionesAbiertas.forEach(pos=>{
+    const os=pos.optSize||100,us=pos.undSize||1;
+    pos.patas.forEach(p=>{
+      const K=parseFloat(p.strike),cant=parseInt(p.cant)||1,sz=p.tipo==="S"?us:os;
+      if(p.tipo==="S"){if(griega==="delta")totG+=cant*sz;return;}
+      const vi=getVI(K,p.tipo),g=bsGreeks(S,K,T,r,vi,p.tipo);
+      if(g)totG+=g[griega]*cant*sz;
+    });
+  });
+  const resEl=document.getElementById("neutral-resultado");
+  const tbl=document.getElementById("neutral-sugerencias-tbl");
+  const tbody=document.getElementById("neutral-sugerencias-body");
+  if(Math.abs(totG)<1e-4){
+    if(resEl)resEl.textContent=`${gLabel} ya es ≈ 0 — no se requiere cobertura.`;
+    if(tbl)tbl.style.display="none";
+    return;
+  }
+  const rows=[];
+  if((inst==="spot"||inst==="all")&&griega==="delta"){
+    const qty=-totG;
+    rows.push({label:`${currentTicker} (spot)`,gPerU:1,qty,prima:S,costo:Math.abs(qty)*S,tipo:"S",strike:S,vi:0});
+  }
+  if(inst!=="spot"){
+    const tipos=inst==="call"?["C"]:inst==="put"?["P"]:["C","P"];
+    const sorted=[...strikesDisponibles].sort((a,b)=>Math.abs(a-S)-Math.abs(b-S)).slice(0,7);
+    sorted.forEach(K=>{
+      tipos.forEach(tipo=>{
+        const vi=getVI(K,tipo),g=bsGreeks(S,K,T,r,vi,tipo);
+        if(!g)return;
+        const gPerU=g[griega];
+        if(Math.abs(gPerU)<1e-6)return;
+        const qty=-totG/(gPerU*optSize);
+        const ld=strikeLast[K];
+        const prima=ld?(tipo==="C"?(ld.bidCall||ld.call||bsPrice(S,K,T,r,vi,tipo)):(ld.bidPut||ld.put||bsPrice(S,K,T,r,vi,tipo))):bsPrice(S,K,T,r,vi,tipo);
+        const costo=Math.abs(qty)*prima*optSize;
+        rows.push({label:`${tipo==="C"?"CALL":"PUT"} ${K.toLocaleString("es-AR")}`,gPerU,qty,prima,costo,tipo,strike:K,vi});
+      });
+    });
+    rows.sort((a,b)=>a.costo-b.costo);
+  }
+  if(!rows.length){
+    if(resEl)resEl.textContent="No hay instrumentos disponibles.";
+    if(tbl)tbl.style.display="none";
+    return;
+  }
+  if(resEl)resEl.innerHTML=`${gLabel} total: <b style="color:${totG>0?""#22c55e"":""#ef4444"";">${totG.toFixed(4)}</b> → neutralizar con el instrumento elegido.`;
+  tbody.innerHTML=rows.map((row,idx)=>{
+    const qtyLabel=row.tipo==="S"?`${row.qty>=0?"+":""}${Math.round(row.qty)} acc`:`${row.qty>=0?"+":""}${row.qty.toFixed(2)} ctr`;
+    const qC=row.qty>0?"#22c55e":"#ef4444";
+    return`<tr style="border-bottom:1px solid #1a1a1a;cursor:pointer;" onclick="_neutralShowImpact(${idx})" data-idx="${idx}"><td style="padding:4px 8px;font-family:var(--font);font-size:12px;font-weight:700;">${row.label}</td><td style="text-align:right;padding:4px 8px;font-family:var(--font);font-size:11px;color:#a0c4ff;">${row.gPerU.toFixed(4)}</td><td style="text-align:right;padding:4px 8px;font-family:var(--font);font-size:12px;font-weight:700;color:${qC};">${qtyLabel}</td><td style="text-align:right;padding:4px 8px;font-family:var(--font);font-size:12px;">$${fmtARS(row.prima)}</td><td style="text-align:right;padding:4px 8px;font-family:var(--font);font-size:12px;color:#f59e0b;">$${fmtARS(row.costo)}</td></tr>`;
+  }).join("");
+  if(tbl)tbl.style.display="table";
+  _neutralRows=rows;
+  _neutralTotG=totG;
+  _neutralGriega=griega;
+  _neutralShowImpact(0);
+}
+
+let _neutralRows=[],_neutralTotG=0,_neutralGriega="delta";
+
+function _neutralShowImpact(idx){
+  const row=_neutralRows[idx];if(!row)return;
+  const el=document.getElementById("neutral-postcover");if(!el)return;
+  const S=spotGGAL||6600,T=(diasVto||37)/365,r=Math.log(1+RF_ANUAL),optSize=100;
+  let pD=0,pG=0,pT=0,pV=0;
+  posicionesAbiertas.forEach(pos=>{
+    const os=pos.optSize||100,us=pos.undSize||1;
+    pos.patas.forEach(p=>{
+      const K=parseFloat(p.strike),cant=parseInt(p.cant)||1,sz=p.tipo==="S"?us:os;
+      if(p.tipo==="S"){pD+=cant*sz;return;}
+      const vi=getVI(K,p.tipo),g=bsGreeks(S,K,T,r,vi,p.tipo);
+      if(g){pD+=g.delta*cant*sz;pG+=g.gamma*cant*sz;pT+=g.theta*cant*sz;pV+=g.vega*cant*sz;}
+    });
+  });
+  let hD=0,hG=0,hT=0,hV=0;
+  if(row.tipo==="S"){hD=row.qty;}
+  else{
+    const vi=row.vi||getVI(row.strike,row.tipo);
+    const g=bsGreeks(S,row.strike,T,r,vi,row.tipo);
+    if(g){const q=row.qty,sz=optSize;hD=g.delta*q*sz;hG=g.gamma*q*sz;hT=g.theta*q*sz;hV=g.vega*q*sz;}
+  }
+  const fD=pD+hD,fG=pG+hG,fT=pT+hT,fV=pV+hV;
+  function statRow(label,before,after){
+    const imp=Math.abs(after)<Math.abs(before);
+    const aC=Math.abs(after)<0.005*Math.max(Math.abs(before),1)?"#22c55e":imp?"#f59e0b":"#ef4444";
+    const arr=imp?"↓":"→";
+    return`<div class="mini-stat"><div class="mini-stat-label">${label}</div><div style="font-size:10px;color:#606070;">${before.toFixed(3)}</div><div style="font-size:14px;font-weight:700;color:${aC};">${arr} ${after.toFixed(3)}</div></div>`;
+  }
+  el.innerHTML=`<div style="font-size:11px;color:#888;font-family:var(--font);margin-bottom:8px;">Hedge: <b style="color:#f97316;">${row.label}</b> × ${row.qty>=0?"+":""}${row.tipo==="S"?Math.round(row.qty)+" acc":row.qty.toFixed(2)+" ctr"} · Costo aprox: <b style="color:#f59e0b;">$${fmtARS(row.costo)}</b></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+    ${statRow("Δ Delta",pD,fD)}${statRow("Γ Gamma",pG,fG)}${statRow("Θ Theta",pT,fT)}${statRow("ν Vega",pV,fV)}
+  </div>`;
+  document.querySelectorAll("#neutral-sugerencias-body tr").forEach((tr,i)=>{tr.style.background=i===idx?"rgba(212,88,26,0.12)":"";});
+}
+
 function renderFlujoGex(){
   if(!strikesDisponibles.length){
     document.getElementById('gex-tbody').innerHTML='<tr><td colspan="10" style="padding:24px;text-align:center;color:#404040;font-family:var(--font);">Cargá la cadena de opciones primero.</td></tr>';
