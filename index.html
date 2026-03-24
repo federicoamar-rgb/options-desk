@@ -521,7 +521,7 @@
         <button onclick="cerrarTodasPosiciones()" style="padding:7px 14px;background:none;color:#ef4444;border:1px solid #ef4444;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;">Cerrar todas</button>
         <button onclick="resetearPosicionesDefault()" style="padding:7px 14px;background:none;color:#f59e0b;border:1px solid #f59e0b;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;" title="Restaura posiciones default del ticker actual">&#8634; Restaurar default</button>
       </div>
-      <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(8,1fr);gap:6px;">
+      <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(11,1fr);gap:6px;">
         <div class="mini-stat"><div class="mini-stat-label">P&L Día</div><div id="pos-pnl-dia" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">P&L Total</div><div id="pos-pnl-total" class="mini-stat-val">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Δ Delta</div><div id="pos-delta-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
@@ -529,7 +529,10 @@
         <div class="mini-stat"><div class="mini-stat-label">Θ Theta</div><div id="pos-theta-total" class="mini-stat-val">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">ν Vega</div><div id="pos-vega-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Capital</div><div id="pos-capital-total" class="mini-stat-val" style="color:#f59e0b;">—</div></div>
-        <div class="mini-stat"><div class="mini-stat-label">Break-even</div><div id="pos-breakeven" class="mini-stat-val" style="color:#f59e0b;font-size:11px;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">BE ↓</div><div id="pos-be-inf" class="mini-stat-val" style="color:#f59e0b;font-size:11px;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">BE ↑</div><div id="pos-be-sup" class="mini-stat-val" style="color:#f59e0b;font-size:11px;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">Máx Gan</div><div id="pos-maxgan" class="mini-stat-val" style="font-size:11px;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">Máx Pérd</div><div id="pos-maxperd" class="mini-stat-val" style="font-size:11px;">—</div></div>
       </div>
       <div class="pos-table" style="margin-bottom:12px;">
         <table style="width:100%;border-collapse:collapse;">
@@ -1782,16 +1785,24 @@ async function _loadPositionsFromServer(ticker){
   }catch(_){}
 }
 
-function _calcBEsCombinados(){
+function _calcPayoffStats(){
   const S0=spotGGAL||6600;
-  const lo=S0*0.5,hi=S0*1.5,steps=600,step=(hi-lo)/steps;
+  const lo=S0*0.3,hi=S0*2.2,steps=1200,step=(hi-lo)/steps;
   const allP=posicionesAbiertas.flatMap(pos=>pos.patas.map(p=>({...p,_opt:pos.optSize||100,_und:pos.undSize||1})));
-  if(!allP.length)return[];
+  if(!allP.length)return{bes:[],beInf:null,beSup:null,maxGain:null,maxLoss:null};
   function pnlAt(S){return allP.reduce((t,p)=>{const K=parseFloat(p.strike),prima=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1,sz=p.tipo==='S'?p._und:p._opt;let pl=0;if(p.tipo==='C')pl=(Math.max(S-K,0)-prima)*cant*sz;else if(p.tipo==='P')pl=(Math.max(K-S,0)-prima)*cant*sz;else pl=(S-K)*cant*sz;return t+pl;},0);}
-  const bes=[];let prev=pnlAt(lo);
-  for(let i=1;i<=steps;i++){const S=lo+i*step;const cur=pnlAt(S);if(prev*cur<0){bes.push(Math.round(lo+(i-0.5)*step));}prev=cur;}
-  return bes;
+  const bes=[];let prev=pnlAt(lo),maxGain=prev,maxLoss=prev;
+  for(let i=1;i<=steps;i++){
+    const S=lo+i*step,cur=pnlAt(S);
+    if(prev*cur<0)bes.push(Math.round(lo+(i-0.5)*step));
+    if(cur>maxGain)maxGain=cur;
+    if(cur<maxLoss)maxLoss=cur;
+    prev=cur;
+  }
+  return{bes,beInf:bes.length?Math.min(...bes):null,beSup:bes.length?Math.max(...bes):null,maxGain,maxLoss};
 }
+// legacy alias para compatibilidad
+function _calcBEsCombinados(){return _calcPayoffStats().bes;}
 
 function renderPosicionesAbiertas(){
   const tbody=document.getElementById('posiciones-body');if(!tbody)return;
@@ -1834,9 +1845,13 @@ function renderPosicionesAbiertas(){
   set('pos-delta-total',totDelta.toFixed(2));set('pos-gamma-total',totGamma.toFixed(4));
   set('pos-theta-total',totTheta.toFixed(2),totTheta<0?'#ef4444':'#22c55e');
   set('pos-vega-total',totVega.toFixed(2));set('pos-capital-total','$'+fmtARS(totCapital));
-  const bes=_calcBEsCombinados();
-  const beEl=document.getElementById('pos-breakeven');
-  if(beEl)beEl.textContent=bes.length?bes.map(b=>'$'+fmtARS(b)).join(' · '):'—';
+  const ps=_calcPayoffStats();
+  const _se=id=>document.getElementById(id);
+  const _sv=(id,txt,col)=>{const el=_se(id);if(el){el.textContent=txt;if(col)el.style.color=col;}};
+  _sv('pos-be-inf', ps.beInf   ? '$'+fmtARS(ps.beInf)             : '—', '#f59e0b');
+  _sv('pos-be-sup', ps.beSup   ? '$'+fmtARS(ps.beSup)             : '—', '#f59e0b');
+  _sv('pos-maxgan', ps.maxGain!==null ? '$'+fmtARS(Math.round(ps.maxGain))  : '—', ps.maxGain>=0?'#22c55e':'#ef4444');
+  _sv('pos-maxperd',ps.maxLoss!==null ? '$'+fmtARS(Math.round(ps.maxLoss))  : '—', ps.maxLoss<0?'#ef4444':'#22c55e');
   // P&L Día: calcular delta vs snapshot de ayer
   const hoy=new Date().toISOString().slice(0,10);
   let pnlDia=0,hasDia=false;
