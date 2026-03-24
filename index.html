@@ -1959,6 +1959,25 @@ function cerrarPosicion(id){
       vEntry,vActual,optSize,undSize,spotCierre:S};
     cerradasList.push(cerrada);
     localStorage.setItem('cerradas_'+currentTicker,JSON.stringify(cerradasList));
+    // Registrar en historico.json del trading system
+    fetch('http://localhost:8765/log_historico',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        fecha_apertura:pos.fecha,
+        fecha_cierre:cerrada.fechaCierre,
+        estrategia:pos.estrategia,
+        nota:pos.nota||'',
+        ticker:currentTicker,
+        prima_entrada:Math.round(vEntry*100)/100,
+        prima_cierre:Math.round(vActual*100)/100,
+        pnl_final:Math.round((vActual-vEntry)*100)/100,
+        dias_en_posicion:Math.round((new Date(cerrada.fechaCierre)-new Date(pos.fecha))/(1000*60*60*24)),
+        patas:pos.patas,
+        opt_size:optSize,
+        und_size:undSize,
+        spot_cierre:S
+      })
+    }).catch(()=>{});
   }
   posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);
   _persistPositions(currentTicker,posicionesAbiertas);
