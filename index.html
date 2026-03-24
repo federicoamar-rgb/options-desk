@@ -534,6 +534,28 @@
         <div class="mini-stat"><div class="mini-stat-label">Máx Gan</div><div id="pos-maxgan" class="mini-stat-val" style="font-size:11px;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Máx Pérd</div><div id="pos-maxperd" class="mini-stat-val" style="font-size:11px;">—</div></div>
       </div>
+      <!-- ── Payoff Chart ── -->
+      <div style="background:#0a0a14;border:1px solid #1a1a2a;border-radius:6px;padding:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:11px;font-weight:700;color:#505070;font-family:var(--font);text-transform:uppercase;letter-spacing:0.8px;">Curva de Payoff</div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:5px;font-family:var(--font);font-size:11px;color:#505070;">
+              Días: <input type="range" id="pos-chart-dias" min="1" max="90" value="37" style="width:80px;accent-color:#60a5fa;" oninput="this._touched=true;document.getElementById('pos-chart-dias-lbl').textContent=this.value+'d';renderPayoffChart()">
+              <span id="pos-chart-dias-lbl" style="color:#60a5fa;font-weight:700;min-width:28px;">37d</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-family:var(--font);font-size:11px;color:#505070;">
+              Rango: <input type="range" id="pos-chart-rango" min="10" max="60" value="35" style="width:70px;accent-color:#f59e0b;" oninput="document.getElementById('pos-chart-rango-lbl').textContent=this.value+'%';renderPayoffChart()">
+              <span id="pos-chart-rango-lbl" style="color:#f59e0b;font-weight:700;min-width:28px;">35%</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;font-family:var(--font);font-size:10px;color:#505070;">
+            <span><span style="display:inline-block;width:16px;height:2px;background:#60a5fa;margin-right:4px;vertical-align:middle;"></span>Teórico BS</span>
+            <span><span style="display:inline-block;width:16px;height:2px;background:#22c55e;margin-right:4px;vertical-align:middle;"></span>Al vencimiento</span>
+          </div>
+        </div>
+        <canvas id="pos-payoff-chart" height="140"></canvas>
+      </div>
+
       <div class="pos-table" style="margin-bottom:12px;">
         <table style="width:100%;border-collapse:collapse;">
           <thead><tr>
@@ -549,16 +571,49 @@
       <!-- ── Escenarios al vencimiento ── -->
       <div style="margin-top:4px;">
         <div class="chart-title" style="margin-bottom:6px;">Escenarios al vencimiento</div>
-        <div style="font-size:10px;color:#404060;font-family:var(--font);margin-bottom:6px;">P&amp;L teórico de la posición combinada por movimiento del subyacente. Prima de entrada fija, valor al vencimiento.</div>
+        <div style="font-size:10px;color:#404060;font-family:var(--font);margin-bottom:6px;">P&amp;L al vencimiento (intrínseco) y teórico BS a T días restantes.</div>
         <div style="overflow-x:auto;max-height:480px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;">
           <table style="width:100%;border-collapse:collapse;">
             <thead style="position:sticky;top:0;background:#0d0d18;z-index:2;"><tr>
-              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;">Movimiento</th>
-              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;">Spot T</th>
-              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;">P&amp;L Total</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;">VAR%</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;">PRECIO</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#22c55e;font-weight:700;border-bottom:1px solid #1a1a1a;">FINISH</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#60a5fa;font-weight:700;border-bottom:1px solid #1a1a1a;">TEÓRICO</th>
             </tr></thead>
             <tbody id="escenarios-body"></tbody>
           </table>
+        </div>
+      </div>
+      <!-- ── Cerradas ── -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
+          <div class="chart-title" style="margin-bottom:0;">Posiciones Cerradas</div>
+          <div style="display:flex;gap:8px;font-family:var(--font);font-size:11px;">
+            <span style="background:#0d0d18;border:1px solid #1a1a2a;border-radius:4px;padding:3px 8px;">Win Rate: <b id="cerradas-winrate" style="color:#22c55e;">—</b></span>
+            <span style="background:#0d0d18;border:1px solid #1a1a2a;border-radius:4px;padding:3px 8px;">Trades: <b id="cerradas-total" style="color:#a0c4ff;">0</b></span>
+            <span style="background:#0d0d18;border:1px solid #1a1a2a;border-radius:4px;padding:3px 8px;">P&L total: <b id="cerradas-pnl">—</b></span>
+          </div>
+          <button onclick="limpiarCerradas()" style="padding:3px 10px;font-size:10px;background:none;border:1px solid #3a0a0a;border-radius:3px;color:#ef4444;cursor:pointer;font-family:var(--font);">Limpiar</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 260px;gap:10px;align-items:start;">
+          <div style="border:1px solid var(--border);border-radius:4px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="background:#0d0d18;">
+                <th style="padding:5px 8px;text-align:left;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;">Cierre</th>
+                <th style="padding:5px 8px;text-align:left;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;">Estrategia</th>
+                <th style="padding:5px 8px;text-align:right;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;">Entrada</th>
+                <th style="padding:5px 8px;text-align:right;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;">Cierre</th>
+                <th style="padding:5px 8px;text-align:right;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;">P&L</th>
+                <th style="padding:5px 8px;text-align:right;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;">Días</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="cerradas-body"></tbody>
+            </table>
+          </div>
+          <div style="background:#0a0a14;border:1px solid #1a1a2a;border-radius:4px;padding:10px;">
+            <div style="font-size:10px;color:#404060;font-family:var(--font);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">Evolución P&L</div>
+            <canvas id="cerradas-equity-chart" height="100"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -1019,6 +1074,7 @@ function switchTicker(ticker, btn) {
   // Load data
   operaciones = JSON.parse(localStorage.getItem('pb_ops_' + ticker) || '[]');
   posicionesAbiertas = JSON.parse(localStorage.getItem('pos_' + ticker) || 'null') || JSON.parse(JSON.stringify(POSICIONES_DEFAULT_MAP[ticker] || []));
+  cerradasList = JSON.parse(localStorage.getItem('cerradas_' + ticker) || '[]');
   renderOperaciones();
   _loadPositionsFromServer(ticker);
   fetchData();
@@ -1753,7 +1809,30 @@ function guardarPosicionModal(){
   posicionesAbiertas.push(nueva);_persistPositions(currentTicker,posicionesAbiertas);
   cerrarModal();renderPosicionesAbiertas();
 }
-function cerrarPosicion(id){posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);_persistPositions(currentTicker,posicionesAbiertas);renderPosicionesAbiertas();}
+function cerrarPosicion(id){
+  const pos=posicionesAbiertas.find(p=>p.id===id);
+  if(pos){
+    const S=spotGGAL||6600,optSize=pos.optSize||100,undSize=pos.undSize||1;
+    const T=(diasVto||37)/365,r=Math.log(1+RF_ANUAL);
+    let vEntry=0,vActual=0;
+    pos.patas.forEach(p=>{
+      const K=parseFloat(p.strike),prima=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1,sz=p.tipo==='S'?undSize:optSize;
+      const mL=p.last?parseFloat(p.last)||null:null;
+      const cL=strikeLast&&strikeLast[K]?(p.tipo==='C'?(strikeLast[K].call||strikeLast[K].bidCall):p.tipo==='P'?(strikeLast[K].put||strikeLast[K].bidPut):null):null;
+      const vi=p.tipo!=='S'?getVI(K,p.tipo):0;
+      const vBS=p.tipo==='S'?S:(mL||cL||(vi>0?bsPrice(S,K,T,r,vi,p.tipo):prima));
+      vEntry+=prima*cant*sz;vActual+=vBS*cant*sz;
+    });
+    const cerrada={id:pos.id,fechaEntrada:pos.fecha,fechaCierre:new Date().toISOString().split('T')[0],
+      nota:pos.nota,estrategia:pos.estrategia,patas:pos.patas,pnlCierre:vActual-vEntry,
+      vEntry,vActual,optSize,undSize,spotCierre:S};
+    cerradasList.push(cerrada);
+    localStorage.setItem('cerradas_'+currentTicker,JSON.stringify(cerradasList));
+  }
+  posicionesAbiertas=posicionesAbiertas.filter(p=>p.id!==id);
+  _persistPositions(currentTicker,posicionesAbiertas);
+  renderPosicionesAbiertas();
+}
 function cerrarTodasPosiciones(){if(confirm('¿Cerrar todas las posiciones?')){posicionesAbiertas=[];_persistPositions(currentTicker,posicionesAbiertas);renderPosicionesAbiertas();}}
 function resetearPosicionesDefault(){
   const defaults=POSICIONES_DEFAULT_MAP[currentTicker];
@@ -1803,6 +1882,101 @@ function _calcPayoffStats(){
 }
 // legacy alias para compatibilidad
 function _calcBEsCombinados(){return _calcPayoffStats().bes;}
+
+// ─── PAYOFF CHART ─────────────────────────────────────────────────────────────
+let posPayoffChart=null;
+function renderPayoffChart(){
+  const ctx=document.getElementById('pos-payoff-chart')?.getContext('2d');if(!ctx)return;
+  const S0=spotGGAL||6600;
+  const diasSlider=parseInt(document.getElementById('pos-chart-dias')?.value||diasVto||37);
+  const rangoSlider=parseInt(document.getElementById('pos-chart-rango')?.value||35);
+  const T_teo=Math.max(diasSlider,1)/365,r=Math.log(1+RF_ANUAL);
+  const lo=S0*(1-rangoSlider/100),hi=S0*(1+rangoSlider/100),steps=80,step=(hi-lo)/steps;
+  const allP=posicionesAbiertas.flatMap(pos=>pos.patas.map(p=>({...p,_opt:pos.optSize||100,_und:pos.undSize||1})));
+  const labels=[],atVto=[],teo=[];
+  for(let i=0;i<=steps;i++){
+    const S=lo+i*step;labels.push(Math.round(S));
+    const pVto=allP.reduce((t,p)=>{const K=parseFloat(p.strike),pr=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1,sz=p.tipo==='S'?p._und:p._opt;let pl=0;if(p.tipo==='C')pl=(Math.max(S-K,0)-pr)*cant*sz;else if(p.tipo==='P')pl=(Math.max(K-S,0)-pr)*cant*sz;else pl=(S-K)*cant*sz;return t+pl;},0);
+    atVto.push(Math.round(pVto));
+    const pTeo=allP.reduce((t,p)=>{const K=parseFloat(p.strike),pr=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1,sz=p.tipo==='S'?p._und:p._opt;let vA=pr;if(p.tipo!=='S'){const vi=getVI(K,p.tipo)||0.55;vA=T_teo>0.001?bsPrice(S,K,T_teo,r,vi,p.tipo):Math.max(p.tipo==='C'?S-K:K-S,0);}else vA=S;return t+(vA-pr)*cant*sz;},0);
+    teo.push(Math.round(pTeo));
+  }
+  const spotIdx=labels.reduce((b,v,i)=>Math.abs(v-S0)<Math.abs(labels[b]-S0)?i:b,0);
+  if(posPayoffChart)posPayoffChart.destroy();
+  posPayoffChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Al vencimiento',data:atVto,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.04)',borderWidth:2,pointRadius:0,fill:false,tension:0},
+      {label:`Teórico ${diasSlider}d`,data:teo,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,0.04)',borderWidth:2,pointRadius:0,fill:false,tension:0.25,borderDash:[4,2]}
+    ]},
+    options:{responsive:true,animation:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw>=0?'+':''}$${fmtARS(c.raw)}`}}},
+      scales:{
+        x:{ticks:{maxTicksLimit:10,color:'#404060',font:{family:'Calibri,Arial',size:10},callback:(v,i)=>{const n=labels[i];return n>=10000?'$'+(n/1000).toFixed(0)+'k':n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+n;}},grid:{color:'#0f0f1a'}},
+        y:{ticks:{color:'#404060',font:{family:'Calibri,Arial',size:10},callback:v=>(v>=0?'+':'')+'$'+fmtARS(Math.abs(v))},grid:{color:'#0f0f1a'}}
+      }
+    },
+    plugins:[{id:'spotLine',afterDraw(ch){
+      const c2=ch.ctx,xs=ch.scales.x,ys=ch.scales.y,x=xs.getPixelForValue(spotIdx);
+      c2.save();c2.strokeStyle='rgba(245,158,11,0.55)';c2.lineWidth=1;c2.setLineDash([4,3]);
+      c2.beginPath();c2.moveTo(x,ys.top);c2.lineTo(x,ys.bottom);c2.stroke();
+      c2.fillStyle='#f59e0b';c2.font='bold 9px Calibri,Arial';c2.fillText('SPOT',x+3,ys.top+11);
+      c2.restore();
+    }}]
+  });
+}
+
+// ─── CERRADAS ─────────────────────────────────────────────────────────────────
+let cerradasList=JSON.parse(localStorage.getItem('cerradas_GGAL')||'[]');
+let cerradasChart=null;
+function renderCerradasSection(){
+  const wins=cerradasList.filter(c=>c.pnlCierre>0).length;
+  const total=cerradasList.length;
+  const pnlTotal=cerradasList.reduce((s,c)=>s+c.pnlCierre,0);
+  const winRate=total>0?(wins/total*100).toFixed(0):'—';
+  const _e=id=>document.getElementById(id);
+  const _sv=(id,v,col)=>{const e=_e(id);if(e){e.textContent=v;if(col)e.style.color=col;}};
+  _sv('cerradas-winrate',total>0?winRate+'%':'—',total>0&&parseFloat(winRate)>=50?'#22c55e':'#ef4444');
+  _sv('cerradas-total',total,'#a0c4ff');
+  _sv('cerradas-pnl',total>0?'$'+fmtARS(Math.round(pnlTotal)):'—',pnlTotal>=0?'#22c55e':'#ef4444');
+  const tbody=_e('cerradas-body');
+  if(tbody){
+    tbody.innerHTML=cerradasList.length?cerradasList.slice().reverse().map(c=>{
+      const dias=Math.round((new Date(c.fechaCierre)-new Date(c.fechaEntrada))/(1000*60*60*24));
+      return `<tr style="border-bottom:1px solid #0f0f1a;">
+        <td style="font-family:var(--font);font-size:11px;color:#606070;padding:5px 8px;">${c.fechaCierre}</td>
+        <td style="font-family:var(--font);font-size:12px;font-weight:700;padding:5px 8px;">${c.estrategia}</td>
+        <td style="font-family:var(--font);font-size:11px;text-align:right;padding:5px 8px;">$${fmtARS(Math.round(c.vEntry))}</td>
+        <td style="font-family:var(--font);font-size:11px;text-align:right;padding:5px 8px;color:#a0c4ff;">$${fmtARS(Math.round(c.vActual))}</td>
+        <td style="font-family:var(--font);font-size:12px;text-align:right;padding:5px 8px;font-weight:700;color:${c.pnlCierre>=0?'#22c55e':'#ef4444'};">${c.pnlCierre>=0?'+':''}$${fmtARS(Math.round(c.pnlCierre))}</td>
+        <td style="font-family:var(--font);font-size:11px;text-align:right;padding:5px 8px;color:#606070;">${dias}d</td>
+        <td style="text-align:center;padding:5px 6px;"><button onclick="borrarCerrada(${c.id})" style="padding:2px 6px;font-size:10px;border:1px solid #2a2a2a;border-radius:3px;cursor:pointer;background:none;color:#555;font-family:var(--font);">×</button></td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="7" style="padding:14px;text-align:center;color:#404040;font-family:var(--font);">Sin posiciones cerradas.</td></tr>';
+  }
+  const ctxC=_e('cerradas-equity-chart')?.getContext('2d');
+  if(ctxC){
+    if(cerradasChart)cerradasChart.destroy();cerradasChart=null;
+    if(cerradasList.length){
+      let acum=0;const eqData=cerradasList.map(c=>{acum+=c.pnlCierre;return Math.round(acum);});
+      cerradasChart=new Chart(ctxC,{type:'line',
+        data:{labels:cerradasList.map((_,i)=>`#${i+1}`),datasets:[{label:'P&L Acum.',data:eqData,borderColor:'#a78bfa',backgroundColor:'rgba(167,139,250,0.07)',tension:0.3,pointRadius:3,borderWidth:2,fill:true}]},
+        options:{responsive:true,animation:false,plugins:{legend:{display:false}},
+          scales:{x:{display:false},y:{ticks:{color:'#404060',font:{size:10},callback:v=>'$'+fmtARS(v)},grid:{color:'#0f0f1a'}}}}});
+    }
+  }
+}
+function borrarCerrada(id){
+  cerradasList=cerradasList.filter(c=>c.id!==id);
+  localStorage.setItem('cerradas_'+currentTicker,JSON.stringify(cerradasList));
+  renderCerradasSection();
+}
+function limpiarCerradas(){
+  if(!confirm('¿Eliminar todo el historial de cerradas?'))return;
+  cerradasList=[];
+  localStorage.removeItem('cerradas_'+currentTicker);
+  renderCerradasSection();
+}
 
 function renderPosicionesAbiertas(){
   const tbody=document.getElementById('posiciones-body');if(!tbody)return;
@@ -1864,6 +2038,11 @@ function renderPosicionesAbiertas(){
   if(hasDia)set('pos-pnl-dia',fmtARS(pnlDia),pnlDia>=0?'#22c55e':'#ef4444');
   else set('pos-pnl-dia','—','#a0c4ff');
   renderEscenariosTable();
+  renderPayoffChart();
+  renderCerradasSection();
+  // Sync days slider with current diasVto
+  const dSlider=document.getElementById('pos-chart-dias');
+  if(dSlider){dSlider.max=Math.max(diasVto||37,90);if(!dSlider._touched){dSlider.value=diasVto||37;const lbl=document.getElementById('pos-chart-dias-lbl');if(lbl)lbl.textContent=(diasVto||37)+'d';}}
 }
 
 function setPataLast(posId,legIdx,val){
@@ -1878,14 +2057,15 @@ function setPataLast(posId,legIdx,val){
 function renderEscenariosTable(){
   const tbody=document.getElementById('escenarios-body');
   if(!tbody)return;
-  if(!posicionesAbiertas.length){tbody.innerHTML='<tr><td colspan="3" style="padding:10px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones.</td></tr>';return;}
+  if(!posicionesAbiertas.length){tbody.innerHTML='<tr><td colspan="4" style="padding:10px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones.</td></tr>';return;}
   const S0=spotGGAL||6600;
-  // Merge all patas from all positions (keep per-pos optSize/undSize)
+  const T_teo=(diasVto||37)/365,r=Math.log(1+RF_ANUAL);
   const todasPatas=posicionesAbiertas.flatMap(pos=>pos.patas.map(p=>({...p,_optSize:pos.optSize||100,_undSize:pos.undSize||1})));
   let html='';
   for(let pct=-30;pct<=30;pct+=2){
     const ST=S0*(1+pct/100);
-    const pnl=todasPatas.reduce((t,p)=>{
+    // Finish (intrinsic at vencimiento)
+    const pnlFinish=todasPatas.reduce((t,p)=>{
       const K=parseFloat(p.strike),prima=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1;
       const sz=p.tipo==='S'?p._undSize:p._optSize;
       let pl=0;
@@ -1894,14 +2074,25 @@ function renderEscenariosTable(){
       else pl=(ST-K)*cant*sz;
       return t+pl;
     },0);
+    // Teórico BS
+    const pnlTeo=todasPatas.reduce((t,p)=>{
+      const K=parseFloat(p.strike),prima=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1;
+      const sz=p.tipo==='S'?p._undSize:p._optSize;
+      let vA=prima;
+      if(p.tipo!=='S'){const vi=getVI(K,p.tipo)||0.55;vA=bsPrice(ST,K,T_teo,r,vi,p.tipo);}
+      else vA=ST;
+      return t+(vA-prima)*cant*sz;
+    },0);
     const isSpot=pct===0;
     const bg=isSpot?'background:rgba(245,158,11,0.07);':'';
-    const pnlColor=pnl>=0?'#22c55e':'#ef4444';
     const movColor=pct>0?'#22c55e':pct<0?'#ef4444':'#f59e0b';
+    const fColor=pnlFinish>=0?'#22c55e':'#ef4444';
+    const tColor=pnlTeo>=0?'#60a5fa':'#f87171';
     html+=`<tr style="border-bottom:1px solid #0f0f1a;${bg}">
       <td style="text-align:right;padding:3px 10px;color:${movColor};font-weight:${isSpot?'700':'400'};">${pct>=0?'+':''}${pct}%</td>
-      <td style="text-align:right;padding:3px 10px;color:#a0a0c0;font-family:var(--font);font-size:11px;">${fmtARS(ST)}</td>
-      <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'500'};color:${pnlColor};font-family:var(--font);font-size:11px;">${pnl>=0?'+':''}${fmtARS(pnl)}</td>
+      <td style="text-align:right;padding:3px 10px;color:#a0a0c0;font-family:var(--font);font-size:11px;">$${fmtARS(Math.round(ST))}</td>
+      <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'500'};color:${fColor};font-family:var(--font);font-size:11px;">${pnlFinish>=0?'+':''}$${fmtARS(Math.round(pnlFinish))}</td>
+      <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'400'};color:${tColor};font-family:var(--font);font-size:11px;">${pnlTeo>=0?'+':''}$${fmtARS(Math.round(pnlTeo))}</td>
     </tr>`;
   }
   tbody.innerHTML=html;
