@@ -1145,27 +1145,42 @@ function render(rows) {
   if(preEl)preEl.style.display=todasVacias?'block':'none';
   renderSmile(); sincronizarSliders(); saveHistoricoSesion();
 
+  // ─── Estrategias (computed client-side from strikeLast) ─────────────────
   let bull='',ratio='',ratio2='',ratio3='',mar='',mar1='',mar2='';
   let bear='',pr='',pr2='',pr3='',pm='',pm1='',pm2='',lanz='',sint='';
-  for(let i=33;i<=61;i++){
-    const r=rows[i]; if(!r||!r[0]) continue;
-    const sk=strikeMap[r[0].toString().trim()]||'';
-    bull+=`<tr><td>${sk}</td><td>${colorNum(r[1])}</td></tr>`;
-    ratio+=`<tr><td>${sk}</td><td>${colorNum(r[2])}</td></tr>`;
-    ratio2+=`<tr><td>${sk}</td><td>${colorNum(r[3])}</td></tr>`;
-    ratio3+=`<tr><td>${sk}</td><td>${colorNum(r[4])}</td></tr>`;
-    mar+=`<tr><td>${sk}</td><td>${colorNum(r[5])}</td></tr>`;
-    mar1+=`<tr><td>${sk}</td><td>${colorNum(r[6])}</td></tr>`;
-    mar2+=`<tr><td>${sk}</td><td>${colorNum(r[7])}</td></tr>`;
-    lanz+=`<tr><td>${sk}</td><td>${colorPct(r[8])}</td><td>${colorPct(r[9])}</td></tr>`;
-    bear+=`<tr><td>${sk}</td><td>${colorNum(r[11])}</td></tr>`;
-    pr+=`<tr><td>${sk}</td><td>${colorNum(r[12])}</td></tr>`;
-    pr2+=`<tr><td>${sk}</td><td>${colorNum(r[13])}</td></tr>`;
-    pr3+=`<tr><td>${sk}</td><td>${colorNum(r[14])}</td></tr>`;
-    pm+=`<tr><td>${sk}</td><td>${colorNum(r[15])}</td></tr>`;
-    pm1+=`<tr><td>${sk}</td><td>${colorNum(r[16])}</td></tr>`;
-    pm2+=`<tr><td>${sk}</td><td>${colorNum(r[17])}</td></tr>`;
-    sint+=`<tr><td>${sk}</td><td>${colorPct(r[18])}</td></tr>`;
+  {
+    const _sK=strikesDisponibles.slice().sort((a,b)=>a-b);
+    const _KC=k=>{const ld=strikeLast[k];return ld?(ld.bidCall||ld.call||0):0;};
+    const _KP=k=>{const ld=strikeLast[k];return ld?(ld.bidPut||ld.put||0):0;};
+    const _cSp=spotGGAL||6600;
+    for(let _i=0;_i<_sK.length;_i++){
+      const K=_sK[_i];
+      const Kp1=_sK[_i+1],Kp2=_sK[_i+2],Kp3=_sK[_i+3],Kp4=_sK[_i+4],Kp6=_sK[_i+6];
+      const Km1=_sK[_i-1],Km2=_sK[_i-2],Km3=_sK[_i-3],Km4=_sK[_i-4],Km6=_sK[_i-6];
+      const c=_KC(K),c1=Kp1?_KC(Kp1):0,c2=Kp2?_KC(Kp2):0,c3=Kp3?_KC(Kp3):0,c4=Kp4?_KC(Kp4):0,c6=Kp6?_KC(Kp6):0;
+      const p=_KP(K),qm1=Km1?_KP(Km1):0,qm2=Km2?_KP(Km2):0,qm3=Km3?_KP(Km3):0,qm4=Km4?_KP(Km4):0,qm6=Km6?_KP(Km6):0;
+      const sk=K.toLocaleString('es-AR');
+      if(c>0){
+        if(Kp1&&c1)bull+=`<tr><td>${sk}</td><td>${colorNum((c-c1).toFixed(2))}</td></tr>`;
+        if(Kp1&&c1)ratio+=`<tr><td>${sk}</td><td>${colorNum((2*c1-c).toFixed(2))}</td></tr>`;
+        if(Kp2&&c2)ratio2+=`<tr><td>${sk}</td><td>${colorNum((2*c2-c).toFixed(2))}</td></tr>`;
+        if(Kp3&&c3)ratio3+=`<tr><td>${sk}</td><td>${colorNum((2*c3-c).toFixed(2))}</td></tr>`;
+        if(Kp1&&Kp2&&c1&&c2)mar+=`<tr><td>${sk}</td><td>${colorNum((c-2*c1+c2).toFixed(2))}</td></tr>`;
+        if(Kp2&&Kp4&&c2&&c4)mar1+=`<tr><td>${sk}</td><td>${colorNum((c-2*c2+c4).toFixed(2))}</td></tr>`;
+        if(Kp3&&Kp6&&c3&&c6)mar2+=`<tr><td>${sk}</td><td>${colorNum((c-2*c3+c6).toFixed(2))}</td></tr>`;
+        lanz+=`<tr><td>${sk}</td><td>${colorPct((c/_cSp*(365/(diasVto||30))*100).toFixed(1)+'%')}</td><td>${colorPct((c/_cSp*100).toFixed(1)+'%')}</td></tr>`;
+      }
+      if(c>0&&p>0)sint+=`<tr><td>${sk}</td><td>${colorPct(((c-p+K-_cSp)/_cSp*(365/(diasVto||30))*100).toFixed(1)+'%')}</td></tr>`;
+      if(p>0){
+        if(Km1&&qm1)bear+=`<tr><td>${sk}</td><td>${colorNum((p-qm1).toFixed(2))}</td></tr>`;
+        if(Km1&&qm1)pr+=`<tr><td>${sk}</td><td>${colorNum((2*qm1-p).toFixed(2))}</td></tr>`;
+        if(Km2&&qm2)pr2+=`<tr><td>${sk}</td><td>${colorNum((2*qm2-p).toFixed(2))}</td></tr>`;
+        if(Km3&&qm3)pr3+=`<tr><td>${sk}</td><td>${colorNum((2*qm3-p).toFixed(2))}</td></tr>`;
+        if(Km1&&Km2&&qm1&&qm2)pm+=`<tr><td>${sk}</td><td>${colorNum((p-2*qm1+qm2).toFixed(2))}</td></tr>`;
+        if(Km2&&Km4&&qm2&&qm4)pm1+=`<tr><td>${sk}</td><td>${colorNum((p-2*qm2+qm4).toFixed(2))}</td></tr>`;
+        if(Km3&&Km6&&qm3&&qm6)pm2+=`<tr><td>${sk}</td><td>${colorNum((p-2*qm3+qm6).toFixed(2))}</td></tr>`;
+      }
+    }
   }
   const ids=['bull','ratio','ratio2','ratio3','mariposa','mariposa1','mariposa2','bear','pratio','pratio2','pratio3','pmariposa','pmariposa1','pmariposa2','lanz','sint'];
   const vals=[bull,ratio,ratio2,ratio3,mar,mar1,mar2,bear,pr,pr2,pr3,pm,pm1,pm2,lanz,sint];
@@ -1577,9 +1592,9 @@ function renderSmile(){
   const skewEl=document.getElementById('smile-skew');
   if(!ctx||!strikesDisponibles.length)return;
   const strikes=[...strikesDisponibles].sort((a,b)=>a-b);
-  // Filtrar bid=0: evita IV falsa de opciones ilíquidas
-  const viCalls=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidCall'in ld&&!ld.bidCall)return null;const vi=ld?.viCall;return vi?vi*100:null;});
-  const viPuts=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidPut'in ld&&!ld.bidPut)return null;const vi=ld?.viPut;return vi?vi*100:null;});
+  // Filtrar si no hay precio: bid || last como proxy (fuera de horario bid=null, last tiene valor)
+  const viCalls=strikes.map(k=>{const ld=strikeLast[k];if(!ld||(ld.bidCall===0&&!ld.call))return null;const vi=ld?.viCall;return vi?vi*100:null;});
+  const viPuts=strikes.map(k=>{const ld=strikeLast[k];if(!ld||(ld.bidPut===0&&!ld.put))return null;const vi=ld?.viPut;return vi?vi*100:null;});
   const spotIdx=spotGGAL?strikes.reduce((bi,k,i)=>Math.abs(k-spotGGAL)<Math.abs(strikes[bi]-spotGGAL)?i:bi,0):-1;
   if(smileChart)smileChart.destroy();
   smileChart=new Chart(ctx,{type:'line',plugins:[_smileSpotPlugin(spotIdx)],
@@ -1621,8 +1636,8 @@ function renderVolatilityDashboard(){
   const viPuts=strikes.map(k=>strikeLast[k]?.viPut?strikeLast[k].viPut*100:null);
   const ctx2=document.getElementById('smile-chart2')?.getContext('2d');
   if(ctx2){if(smileChart2)smileChart2.destroy();
-    const viCalls2=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidCall'in ld&&!ld.bidCall)return null;const vi=ld?.viCall;return vi?vi*100:null;});
-    const viPuts2=strikes.map(k=>{const ld=strikeLast[k];if(ld&&'bidPut'in ld&&!ld.bidPut)return null;const vi=ld?.viPut;return vi?vi*100:null;});
+    const viCalls2=strikes.map(k=>{const ld=strikeLast[k];if(!ld||(ld.bidCall===0&&!ld.call))return null;const vi=ld?.viCall;return vi?vi*100:null;});
+    const viPuts2=strikes.map(k=>{const ld=strikeLast[k];if(!ld||(ld.bidPut===0&&!ld.put))return null;const vi=ld?.viPut;return vi?vi*100:null;});
     const spotIdx2=spotGGAL?strikes.reduce((bi,k,i)=>Math.abs(k-spotGGAL)<Math.abs(strikes[bi]-spotGGAL)?i:bi,0):-1;
     smileChart2=new Chart(ctx2,{type:'line',plugins:[_smileSpotPlugin(spotIdx2)],data:{labels:strikes.map(k=>k.toLocaleString('es-AR')),datasets:[
       {label:'VI Calls',data:viCalls2,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.06)',tension:0.3,pointRadius:3,borderWidth:2,spanGaps:false},
