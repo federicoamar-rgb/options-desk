@@ -325,29 +325,43 @@
 
   <!-- ══ CALLS ══════════════════════════════════════════════════════════════ -->
   <div id="tab-calls" class="tab-content">
+    <div style="background:#0a0a14;border:1px solid #1a1a2a;border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="font-size:10px;font-weight:700;color:#505070;font-family:var(--font);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Top Picks:</div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Bull Spread: <b id="best-bull-text" style="color:#22c55e;">—</b></div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Bull Spread +1: <b id="best-bull1-text" style="color:#22c55e;">—</b></div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Mariposa: <b id="best-mar-c-text" style="color:#a0c4ff;">—</b></div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Mejor R/R: <b id="best-rr-c-text" style="color:#f59e0b;">—</b></div>
+    </div>
     <div class="section-label">Estrategias con Calls</div>
     <div class="estrategias-wrap">
-      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Bull Spread</div><div class="strat-desc">B1 − B2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="bull-body"></tbody></table></div>
-      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Ratio</div><div class="strat-desc">B1 / B2</div></div><table><thead><tr><th>Strike</th><th>Ratio</th></tr></thead><tbody id="ratio-body"></tbody></table></div>
-      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Ratio +2</div><div class="strat-desc">B1 / B3</div></div><table><thead><tr><th>Strike</th><th>Ratio</th></tr></thead><tbody id="ratio2-body"></tbody></table></div>
-      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Ratio +3</div><div class="strat-desc">B1 / B4</div></div><table><thead><tr><th>Strike</th><th>Ratio</th></tr></thead><tbody id="ratio3-body"></tbody></table></div>
-      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa</div><div class="strat-desc">B1 + B3 − B2×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="mariposa-body"></tbody></table></div>
-      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa +1</div><div class="strat-desc">B1 + B5 − B3×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="mariposa1-body"></tbody></table></div>
-      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa +2</div><div class="strat-desc">B1 + B7 − B4×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="mariposa2-body"></tbody></table></div>
+      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Bull Spread</div><div class="strat-desc">B1 − B2</div></div><table><thead><tr><th>Strikes</th><th>Tipo</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="bull-body"></tbody></table></div>
+      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Bull Spread +1</div><div class="strat-desc">B1 − B3</div></div><table><thead><tr><th>Strikes</th><th>Tipo</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="bull1-body"></tbody></table></div>
+      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Ratio</div><div class="strat-desc">B1 / B2</div></div><table><thead><tr><th>Strike</th><th>Crédito</th></tr></thead><tbody id="ratio-body"></tbody></table></div>
+      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Ratio +2</div><div class="strat-desc">B1 / B3</div></div><table><thead><tr><th>Strike</th><th>Crédito</th></tr></thead><tbody id="ratio2-body"></tbody></table></div>
+      <div class="strat-card calls-strat"><div class="strat-header"><div class="strat-name">Ratio +3</div><div class="strat-desc">B1 / B4</div></div><table><thead><tr><th>Strike</th><th>Crédito</th></tr></thead><tbody id="ratio3-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa</div><div class="strat-desc">B1 + B3 − B2×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>R/R</th><th>Sim.</th></tr></thead><tbody id="mariposa-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa +1</div><div class="strat-desc">B1 + B5 − B3×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="mariposa1-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa +2</div><div class="strat-desc">B1 + B7 − B4×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="mariposa2-body"></tbody></table></div>
     </div>
   </div>
 
   <!-- ══ PUTS ═══════════════════════════════════════════════════════════════ -->
   <div id="tab-puts" class="tab-content">
+    <div style="background:#0a0a14;border:1px solid #1a1a2a;border-radius:6px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="font-size:10px;font-weight:700;color:#505070;font-family:var(--font);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Top Picks:</div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Bear Spread: <b id="best-bear-text" style="color:#ef4444;">—</b></div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Mariposa: <b id="best-mar-p-text" style="color:#a0c4ff;">—</b></div>
+      <div style="font-family:var(--font);font-size:12px;color:#606070;">Mejor R/R: <b id="best-rr-p-text" style="color:#f59e0b;">—</b></div>
+    </div>
     <div class="section-label">Estrategias con Puts</div>
     <div class="estrategias-wrap">
-      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Bear Spread</div><div class="strat-desc">B2 − B1</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="bear-body"></tbody></table></div>
-      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Ratio Put</div><div class="strat-desc">B2 / B1</div></div><table><thead><tr><th>Strike</th><th>Ratio</th></tr></thead><tbody id="pratio-body"></tbody></table></div>
-      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Ratio Put +2</div><div class="strat-desc">B3 / B1</div></div><table><thead><tr><th>Strike</th><th>Ratio</th></tr></thead><tbody id="pratio2-body"></tbody></table></div>
-      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Ratio Put +3</div><div class="strat-desc">B4 / B1</div></div><table><thead><tr><th>Strike</th><th>Ratio</th></tr></thead><tbody id="pratio3-body"></tbody></table></div>
-      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa Put</div><div class="strat-desc">B1 + B3 − B2×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="pmariposa-body"></tbody></table></div>
-      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa Put +1</div><div class="strat-desc">B1 + B5 − B3×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="pmariposa1-body"></tbody></table></div>
-      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa Put +2</div><div class="strat-desc">B1 + B7 − B4×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th></tr></thead><tbody id="pmariposa2-body"></tbody></table></div>
+      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Bear Spread</div><div class="strat-desc">B2 − B1</div></div><table><thead><tr><th>Strikes</th><th>Tipo</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="bear-body"></tbody></table></div>
+      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Ratio Put</div><div class="strat-desc">B2 / B1</div></div><table><thead><tr><th>Strike</th><th>Crédito</th></tr></thead><tbody id="pratio-body"></tbody></table></div>
+      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Ratio Put +2</div><div class="strat-desc">B3 / B1</div></div><table><thead><tr><th>Strike</th><th>Crédito</th></tr></thead><tbody id="pratio2-body"></tbody></table></div>
+      <div class="strat-card puts-strat"><div class="strat-header"><div class="strat-name">Ratio Put +3</div><div class="strat-desc">B4 / B1</div></div><table><thead><tr><th>Strike</th><th>Crédito</th></tr></thead><tbody id="pratio3-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa Put</div><div class="strat-desc">B1 + B3 − B2×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>R/R</th><th>Sim.</th></tr></thead><tbody id="pmariposa-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa Put +1</div><div class="strat-desc">B1 + B5 − B3×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="pmariposa1-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Mariposa Put +2</div><div class="strat-desc">B1 + B7 − B4×2</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>R/R</th></tr></thead><tbody id="pmariposa2-body"></tbody></table></div>
     </div>
   </div>
 
@@ -357,6 +371,14 @@
     <div class="estrategias-wrap">
       <div class="strat-card lanz-strat"><div class="strat-header"><div class="strat-name">Lanzamiento Cubierto</div><div class="strat-desc">TNA · Cobertura</div></div><table><thead><tr><th>Strike</th><th>TNA</th><th>Cobertura</th></tr></thead><tbody id="lanz-body"></tbody></table></div>
       <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Tasa Sintética</div><div class="strat-desc">Call − Put + Strike</div></div><table><thead><tr><th>Strike</th><th>TNA</th></tr></thead><tbody id="sint-body"></tbody></table></div>
+    </div>
+    <div class="section-label" style="margin-top:14px;">Estrategias Combinadas</div>
+    <div class="estrategias-wrap">
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Straddle Comprador</div><div class="strat-desc">+C +P mismo strike</div></div><table><thead><tr><th>Strike</th><th>Costo</th><th>BE−</th><th>BE+</th></tr></thead><tbody id="straddle-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Strangle Comprador</div><div class="strat-desc">+C(K+1) +P(K−1)</div></div><table><thead><tr><th>Strikes</th><th>Costo</th><th>BE−</th><th>BE+</th></tr></thead><tbody id="strangle-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Iron Condor</div><div class="strat-desc">−P(K2)+P(K1) −C(K3)+C(K4)</div></div><table><thead><tr><th>Strikes</th><th>Crédito</th><th>Rango</th></tr></thead><tbody id="condor-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Collar</div><div class="strat-desc">+P(K−) −C(K+)</div></div><table><thead><tr><th>Strikes</th><th>Neto</th><th>Cobertura</th></tr></thead><tbody id="collar-body"></tbody></table></div>
+      <div class="strat-card mixed-strat"><div class="strat-header"><div class="strat-name">Venta Put vs Lanz. Cub.</div><div class="strat-desc">Comparativa primas OTM</div></div><table><thead><tr><th>Strike</th><th>Prima Put</th><th>Prima Call</th><th>Δ</th></tr></thead><tbody id="vput-lc-body"></tbody></table></div>
     </div>
   </div>
 
@@ -404,6 +426,14 @@
             <div><div class="pata-label" style="margin-bottom:3px;">Rango gráfico (%)</div><input type="number" id="rango-pct" value="30" min="5" max="100" oninput="recalcular()"></div>
             <div><div class="pata-label" style="margin-bottom:3px;">Break-evens</div><div id="breakevens" style="font-size:12px;font-family:var(--font);color:var(--tk-color);padding-top:5px;">—</div></div>
           </div>
+        </div>
+        <div class="payoff-panel" style="margin-top:8px;padding:10px 12px;">
+          <div class="payoff-panel-title" style="margin-bottom:8px;">📐 Kelly & Sizing</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><div class="pata-label" style="margin-bottom:3px;">Capital Total (ARS)</div><input type="number" id="kelly-capital" value="500000" oninput="calcularKelly()"></div>
+            <div><div class="pata-label" style="margin-bottom:3px;">Prob. Éxito %</div><input type="number" id="kelly-prob" value="55" min="1" max="99" step="1" oninput="calcularKelly()"></div>
+          </div>
+          <div id="kelly-result" style="font-family:var(--font);font-size:12px;color:#505070;">Cargá la estrategia para ver sizing.</div>
         </div>
         <div class="payoff-panel" style="margin-top:8px;padding:10px 12px;">
           <div class="payoff-panel-title" style="margin-bottom:8px;">🤖 Analizar con Claude</div>
@@ -521,14 +551,17 @@
         <button onclick="cerrarTodasPosiciones()" style="padding:7px 14px;background:none;color:#ef4444;border:1px solid #ef4444;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;">Cerrar todas</button>
         <button onclick="resetearPosicionesDefault()" style="padding:7px 14px;background:none;color:#f59e0b;border:1px solid #f59e0b;border-radius:4px;font-family:var(--font);cursor:pointer;font-size:12px;" title="Restaura posiciones default del ticker actual">&#8634; Restaurar default</button>
       </div>
-      <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(11,1fr);gap:6px;">
+      <div style="background:#0d0d18;border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;">
         <div class="mini-stat"><div class="mini-stat-label">P&L Día</div><div id="pos-pnl-dia" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
-        <div class="mini-stat"><div class="mini-stat-label">P&L Total</div><div id="pos-pnl-total" class="mini-stat-val">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">P&L Abierto</div><div id="pos-pnl-total" class="mini-stat-val">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">P&L Cerradas</div><div id="pos-pnl-cerradas" class="mini-stat-val" style="color:#a78bfa;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">Total Acum.</div><div id="pos-pnl-acum" class="mini-stat-val" style="font-size:11px;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Δ Delta</div><div id="pos-delta-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Γ Gamma</div><div id="pos-gamma-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Θ Theta</div><div id="pos-theta-total" class="mini-stat-val">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">ν Vega</div><div id="pos-vega-total" class="mini-stat-val" style="color:#a0c4ff;">—</div></div>
-        <div class="mini-stat"><div class="mini-stat-label">Capital</div><div id="pos-capital-total" class="mini-stat-val" style="color:#f59e0b;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">Capital Op.</div><div id="pos-capital-total" class="mini-stat-val" style="color:#f59e0b;">—</div></div>
+        <div class="mini-stat"><div class="mini-stat-label">Costo Fin.</div><div id="pos-costo-fin" class="mini-stat-val" style="color:#ef4444;font-size:11px;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">BE ↓</div><div id="pos-be-inf" class="mini-stat-val" style="color:#f59e0b;font-size:11px;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">BE ↑</div><div id="pos-be-sup" class="mini-stat-val" style="color:#f59e0b;font-size:11px;">—</div></div>
         <div class="mini-stat"><div class="mini-stat-label">Máx Gan</div><div id="pos-maxgan" class="mini-stat-val" style="font-size:11px;">—</div></div>
@@ -568,6 +601,21 @@
           <tbody id="posiciones-body"></tbody>
         </table>
       </div>
+      <!-- ── Exposición neta por strike ── -->
+      <div style="margin-top:10px;margin-bottom:4px;">
+        <div class="chart-title" style="margin-bottom:6px;">Exposición neta por strike</div>
+        <div style="overflow-x:auto;border:1px solid var(--border);border-radius:4px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr>
+              <th style="text-align:left;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;background:#0d0d18;">TIPO</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;background:#0d0d18;">STRIKE</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;background:#0d0d18;">LOTES NETOS</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;background:#0d0d18;">POSICIÓN</th>
+            </tr></thead>
+            <tbody id="exposicion-neta-body"></tbody>
+          </table>
+        </div>
+      </div>
       <!-- ── Escenarios al vencimiento ── -->
       <div style="margin-top:4px;">
         <div class="chart-title" style="margin-bottom:6px;">Escenarios al vencimiento</div>
@@ -579,6 +627,8 @@
               <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#606070;font-weight:700;border-bottom:1px solid #1a1a1a;">PRECIO</th>
               <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#22c55e;font-weight:700;border-bottom:1px solid #1a1a1a;">FINISH</th>
               <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#60a5fa;font-weight:700;border-bottom:1px solid #1a1a1a;">TEÓRICO</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#4ade80;font-weight:700;border-bottom:1px solid #1a1a1a;">FINISH NETO</th>
+              <th style="text-align:right;padding:5px 10px;font-family:var(--font);font-size:10px;color:#93c5fd;font-weight:700;border-bottom:1px solid #1a1a1a;">TEÓRICO NETO</th>
             </tr></thead>
             <tbody id="escenarios-body"></tbody>
           </table>
@@ -1156,6 +1206,10 @@ function render(rows) {
       strikesDisponibles.push(K_num);
       const pVI=s=>{if(!s||s.trim()===''||s.trim()==='-')return null;const n=parseFloat(s.replace('%','').replace(',','.').trim());if(isNaN(n)||n<=0)return null;return n>1?n/100:n;};
       strikeLast[K_num]={call:parseFloat(r[3])||null,put:parseFloat(r[10])||null,viCall:pVI(r[1]),viPut:pVI(r[8]),bidCall:parseFloat(r[2])||null,bidPut:parseFloat(r[9])||null};
+      // Fallback: compute IV from last price when CSV has no VI (out-of-hours)
+      {const _T=(diasVto||37)/365,_r=Math.log(1+RF_ANUAL);
+      if(!strikeLast[K_num].viCall&&strikeLast[K_num].call&&spotGGAL)strikeLast[K_num].viCall=_impliedVol(spotGGAL,K_num,_T,_r,strikeLast[K_num].call,'C');
+      if(!strikeLast[K_num].viPut&&strikeLast[K_num].put&&spotGGAL)strikeLast[K_num].viPut=_impliedVol(spotGGAL,K_num,_T,_r,strikeLast[K_num].put,'P');}
     }
     const atm=isATM(strike);
     const K=K_num,T=(diasVto||37)/365,rf=Math.log(1+RF_ANUAL);
@@ -1205,8 +1259,10 @@ function render(rows) {
   renderSmile(); sincronizarSliders(); saveHistoricoSesion();
 
   // ─── Estrategias (computed client-side from strikeLast) ─────────────────
-  let bull='',ratio='',ratio2='',ratio3='',mar='',mar1='',mar2='';
+  let bull='',bull1='',ratio='',ratio2='',ratio3='',mar='',mar1='',mar2='';
   let bear='',pr='',pr2='',pr3='',pm='',pm1='',pm2='',lanz='',sint='';
+  let straddle='',strangle='',condor='',collar='',vput_lc='';
+  let bestBull=null,bestBull1=null,bestMarC=null,bestRRC=null,bestBear=null,bestMarP=null,bestRRP=null;
   {
     const _sK=strikesDisponibles.slice().sort((a,b)=>a-b);
     const _KC=k=>{const ld=strikeLast[k];return ld?(ld.bidCall||ld.call||0):0;};
@@ -1220,30 +1276,47 @@ function render(rows) {
       const p=_KP(K),qm1=Km1?_KP(Km1):0,qm2=Km2?_KP(Km2):0,qm3=Km3?_KP(Km3):0,qm4=Km4?_KP(Km4):0,qm6=Km6?_KP(Km6):0;
       const sk=K.toLocaleString('es-AR');
       if(c>0){
-        if(Kp1&&c1)bull+=`<tr><td>${sk}</td><td>${colorNum((c-c1).toFixed(2))}</td></tr>`;
+        if(Kp1&&c1){const cost=c-c1,maxW=Kp1-K-cost,rr=cost>0?maxW/cost:0,tipo=cost>0?'Déb':'Créd';bull+=`<tr><td style="text-align:left;">${sk}/${Kp1.toLocaleString('es-AR')}</td><td style="text-align:center;color:${cost>0?'#ef4444':'#22c55e'};font-size:10px;">${tipo}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;if(rr>0&&(!bestBull||rr>bestBull.rr))bestBull={sk,kp1:Kp1,rr};if(rr>0&&(!bestRRC||rr>bestRRC.rr))bestRRC={sk,kp1:Kp1,rr};}
+        if(Kp2&&c2){const cost=c-c2,maxW=Kp2-K-cost,rr=cost>0?maxW/cost:0,tipo=cost>0?'Déb':'Créd';bull1+=`<tr><td style="text-align:left;">${sk}/${Kp2.toLocaleString('es-AR')}</td><td style="text-align:center;color:${cost>0?'#ef4444':'#22c55e'};font-size:10px;">${tipo}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;if(rr>0&&(!bestBull1||rr>bestBull1.rr))bestBull1={sk,kp2:Kp2,rr};}
         if(Kp1&&c1)ratio+=`<tr><td>${sk}</td><td>${colorNum((2*c1-c).toFixed(2))}</td></tr>`;
         if(Kp2&&c2)ratio2+=`<tr><td>${sk}</td><td>${colorNum((2*c2-c).toFixed(2))}</td></tr>`;
         if(Kp3&&c3)ratio3+=`<tr><td>${sk}</td><td>${colorNum((2*c3-c).toFixed(2))}</td></tr>`;
-        if(Kp1&&Kp2&&c1&&c2)mar+=`<tr><td>${sk}</td><td>${colorNum((c-2*c1+c2).toFixed(2))}</td></tr>`;
-        if(Kp2&&Kp4&&c2&&c4)mar1+=`<tr><td>${sk}</td><td>${colorNum((c-2*c2+c4).toFixed(2))}</td></tr>`;
-        if(Kp3&&Kp6&&c3&&c6)mar2+=`<tr><td>${sk}</td><td>${colorNum((c-2*c3+c6).toFixed(2))}</td></tr>`;
+        if(Kp1&&Kp2&&c1&&c2){const cost=c-2*c1+c2,maxW=(Kp1-K)-cost,rr=cost>0?maxW/cost:0,sym=Math.abs((Kp1-K)-(Kp2-Kp1))<50;mar+=`<tr><td>${sk}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td><td style="text-align:center;color:${sym?'#22c55e':'#303040'};">${sym?'✓':''}</td></tr>`;if(cost>0&&rr>0&&(!bestMarC||rr>bestMarC.rr))bestMarC={sk,rr};}
+        if(Kp2&&Kp4&&c2&&c4){const cost=c-2*c2+c4,maxW=(Kp2-K)-cost,rr=cost>0?maxW/cost:0;mar1+=`<tr><td>${sk}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;}
+        if(Kp3&&Kp6&&c3&&c6){const cost=c-2*c3+c6,maxW=(Kp3-K)-cost,rr=cost>0?maxW/cost:0;mar2+=`<tr><td>${sk}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;}
         lanz+=`<tr><td>${sk}</td><td>${colorPct((c/_cSp*(365/(diasVto||30))*100).toFixed(1)+'%')}</td><td>${colorPct((c/_cSp*100).toFixed(1)+'%')}</td></tr>`;
       }
-      if(c>0&&p>0)sint+=`<tr><td>${sk}</td><td>${colorPct(((c-p+K-_cSp)/_cSp*(365/(diasVto||30))*100).toFixed(1)+'%')}</td></tr>`;
+      if(c>0&&p>0){
+        sint+=`<tr><td>${sk}</td><td>${colorPct(((c-p+K-_cSp)/_cSp*(365/(diasVto||30))*100).toFixed(1)+'%')}</td></tr>`;
+        straddle+=`<tr><td>${sk}</td><td>${colorNum((c+p).toFixed(2))}</td><td style="color:#f59e0b;">${Math.round(K-(c+p)).toLocaleString('es-AR')}</td><td style="color:#f59e0b;">${Math.round(K+(c+p)).toLocaleString('es-AR')}</td></tr>`;
+        if(K<_cSp)vput_lc+=`<tr><td>${sk}</td><td style="color:#22c55e;">${colorNum(p.toFixed(2))}</td><td style="color:#a0c4ff;">${colorNum(c.toFixed(2))}</td><td>${colorNum((c-p).toFixed(2))}</td></tr>`;
+      }
+      if(Kp1&&Km1&&c1>0&&qm1>0){const cost=c1+qm1;strangle+=`<tr><td style="text-align:left;font-size:11px;">${Km1.toLocaleString('es-AR')}/${Kp1.toLocaleString('es-AR')}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${Math.round(Km1-cost).toLocaleString('es-AR')}</td><td style="color:#f59e0b;">${Math.round(Kp1+cost).toLocaleString('es-AR')}</td></tr>`;}
+      if(Kp1&&Kp2&&Km1&&c1>0&&c2>0&&p>0&&qm1>0){const cred=(p-qm1)+(c1-c2);if(cred>0)condor+=`<tr><td style="text-align:left;font-size:10px;">${Km1.toLocaleString('es-AR')}/${sk}/${Kp1.toLocaleString('es-AR')}/${Kp2.toLocaleString('es-AR')}</td><td>${colorNum(cred.toFixed(2))}</td><td style="color:#a0c4ff;font-size:11px;">${Km1.toLocaleString('es-AR')}−${Kp1.toLocaleString('es-AR')}</td></tr>`;}
+      if(Kp1&&Km1&&c1>0&&qm1>0){const neto=qm1-c1,cob=((K-Km1)/K*100).toFixed(1);collar+=`<tr><td style="text-align:left;">${Km1.toLocaleString('es-AR')}/${Kp1.toLocaleString('es-AR')}</td><td>${colorNum(neto.toFixed(2))}</td><td style="color:#a0c4ff;">${cob}%</td></tr>`;}
       if(p>0){
-        if(Km1&&qm1)bear+=`<tr><td>${sk}</td><td>${colorNum((p-qm1).toFixed(2))}</td></tr>`;
+        if(Km1&&qm1){const cost=p-qm1,maxW=K-Km1-cost,rr=cost>0?maxW/cost:0,tipo=cost>0?'Déb':'Créd';bear+=`<tr><td style="text-align:left;">${sk}/${Km1.toLocaleString('es-AR')}</td><td style="text-align:center;color:${cost>0?'#ef4444':'#22c55e'};font-size:10px;">${tipo}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;if(rr>0&&(!bestBear||rr>bestBear.rr))bestBear={sk,km1:Km1,rr};if(rr>0&&(!bestRRP||rr>bestRRP.rr))bestRRP={sk,km1:Km1,rr};}
         if(Km1&&qm1)pr+=`<tr><td>${sk}</td><td>${colorNum((2*qm1-p).toFixed(2))}</td></tr>`;
         if(Km2&&qm2)pr2+=`<tr><td>${sk}</td><td>${colorNum((2*qm2-p).toFixed(2))}</td></tr>`;
         if(Km3&&qm3)pr3+=`<tr><td>${sk}</td><td>${colorNum((2*qm3-p).toFixed(2))}</td></tr>`;
-        if(Km1&&Km2&&qm1&&qm2)pm+=`<tr><td>${sk}</td><td>${colorNum((p-2*qm1+qm2).toFixed(2))}</td></tr>`;
-        if(Km2&&Km4&&qm2&&qm4)pm1+=`<tr><td>${sk}</td><td>${colorNum((p-2*qm2+qm4).toFixed(2))}</td></tr>`;
-        if(Km3&&Km6&&qm3&&qm6)pm2+=`<tr><td>${sk}</td><td>${colorNum((p-2*qm3+qm6).toFixed(2))}</td></tr>`;
+        if(Km1&&Km2&&qm1&&qm2){const cost=p-2*qm1+qm2,maxW=(K-Km1)-cost,rr=cost>0?maxW/cost:0,sym=Math.abs((K-Km1)-(Km1-Km2))<50;pm+=`<tr><td>${sk}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td><td style="text-align:center;color:${sym?'#22c55e':'#303040'};">${sym?'✓':''}</td></tr>`;if(cost>0&&rr>0&&(!bestMarP||rr>bestMarP.rr))bestMarP={sk,rr};}
+        if(Km2&&Km4&&qm2&&qm4){const cost=p-2*qm2+qm4,maxW=(K-Km2)-cost,rr=cost>0?maxW/cost:0;pm1+=`<tr><td>${sk}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;}
+        if(Km3&&Km6&&qm3&&qm6){const cost=p-2*qm3+qm6,maxW=(K-Km3)-cost,rr=cost>0?maxW/cost:0;pm2+=`<tr><td>${sk}</td><td>${colorNum(cost.toFixed(2))}</td><td style="color:#f59e0b;">${rr>0?rr.toFixed(2):'—'}</td></tr>`;}
       }
     }
   }
-  const ids=['bull','ratio','ratio2','ratio3','mariposa','mariposa1','mariposa2','bear','pratio','pratio2','pratio3','pmariposa','pmariposa1','pmariposa2','lanz','sint'];
-  const vals=[bull,ratio,ratio2,ratio3,mar,mar1,mar2,bear,pr,pr2,pr3,pm,pm1,pm2,lanz,sint];
+  const ids=['bull','bull1','ratio','ratio2','ratio3','mariposa','mariposa1','mariposa2','bear','pratio','pratio2','pratio3','pmariposa','pmariposa1','pmariposa2','lanz','sint','straddle','strangle','condor','collar','vput-lc'];
+  const vals=[bull,bull1,ratio,ratio2,ratio3,mar,mar1,mar2,bear,pr,pr2,pr3,pm,pm1,pm2,lanz,sint,straddle,strangle,condor,collar,vput_lc];
   ids.forEach((id,i)=>{const el=document.getElementById(id+'-body');if(el)el.innerHTML=vals[i];});
+  // Top picks
+  {const bs=id=>document.getElementById(id);
+  if(bs('best-bull-text'))bs('best-bull-text').textContent=bestBull?`${bestBull.sk}/${bestBull.kp1?.toLocaleString('es-AR')} R/R:${bestBull.rr.toFixed(1)}x`:'—';
+  if(bs('best-bull1-text'))bs('best-bull1-text').textContent=bestBull1?`${bestBull1.sk}/${bestBull1.kp2?.toLocaleString('es-AR')} R/R:${bestBull1.rr.toFixed(1)}x`:'—';
+  if(bs('best-mar-c-text'))bs('best-mar-c-text').textContent=bestMarC?`${bestMarC.sk} R/R:${bestMarC.rr.toFixed(1)}x`:'—';
+  if(bs('best-rr-c-text'))bs('best-rr-c-text').textContent=bestRRC?`${bestRRC.sk}/${bestRRC.kp1?.toLocaleString('es-AR')} ${bestRRC.rr.toFixed(1)}x`:'—';
+  if(bs('best-bear-text'))bs('best-bear-text').textContent=bestBear?`${bestBear.sk}/${bestBear.km1?.toLocaleString('es-AR')} R/R:${bestBear.rr.toFixed(1)}x`:'—';
+  if(bs('best-mar-p-text'))bs('best-mar-p-text').textContent=bestMarP?`${bestMarP.sk} R/R:${bestMarP.rr.toFixed(1)}x`:'—';
+  if(bs('best-rr-p-text'))bs('best-rr-p-text').textContent=bestRRP?`${bestRRP.sk}/${bestRRP.km1?.toLocaleString('es-AR')} ${bestRRP.rr.toFixed(1)}x`:'—';}
   // Update prev prices for VAR% next cycle
   for(let _i=2;_i<=30;_i++){const _rr=rows[_i];if(!_rr||!_rr[0])continue;const _kk=parseFloat((_rr[6]||'').toString().trim());if(!isNaN(_kk)&&_kk>0){const _pk=`${currentTicker}_${_kk}`;if(!_prevChainPrices[_pk])_prevChainPrices[_pk]={};const _cl=parseFloat(_rr[3]),_pl=parseFloat(_rr[10]);if(!isNaN(_cl)&&_cl>0)_prevChainPrices[_pk].call=_cl;if(!isNaN(_pl)&&_pl>0)_prevChainPrices[_pk].put=_pl;}}
 }
@@ -1280,6 +1353,14 @@ function normCDF(x){const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.45
 function normPDF(x){return Math.exp(-0.5*x*x)/Math.sqrt(2*Math.PI);}
 function bsGreeks(S,K,T,r,sigma,tipo){if(T<=0||sigma<=0||S<=0||K<=0)return null;const d1=(Math.log(S/K)+(r+0.5*sigma*sigma)*T)/(sigma*Math.sqrt(T));const d2=d1-sigma*Math.sqrt(T);const Nd1=normCDF(d1),Nd2=normCDF(d2),nd1=normPDF(d1),eRT=Math.exp(-r*T);const isCall=tipo==='C';const delta=isCall?Nd1:Nd1-1;const gamma=nd1/(S*sigma*Math.sqrt(T));const vega=S*nd1*Math.sqrt(T)/100;const theta=isCall?(-(S*nd1*sigma)/(2*Math.sqrt(T))-r*K*eRT*Nd2)/365:(-(S*nd1*sigma)/(2*Math.sqrt(T))+r*K*eRT*(1-Nd2))/365;const rho=isCall?K*T*eRT*Nd2/100:-K*T*eRT*(1-Nd2)/100;const prob=isCall?Nd2:1-Nd2;return{delta,gamma,vega,theta,rho,prob};}
 function bsPrice(S,K,T,r,sigma,tipo){if(T<=0||sigma<=0)return 0;const d1=(Math.log(S/K)+(r+0.5*sigma*sigma)*T)/(sigma*Math.sqrt(T));const d2=d1-sigma*Math.sqrt(T);const eRT=Math.exp(-r*T);if(tipo==='C')return S*normCDF(d1)-K*eRT*normCDF(d2);return K*eRT*normCDF(-d2)-S*normCDF(-d1);}
+function _impliedVol(S,K,T,r,price,tipo){
+  if(!price||price<=0||T<=0||S<=0)return null;
+  const intr=tipo==='C'?Math.max(S-K,0):Math.max(K-S,0);
+  if(price<=intr+0.001)return null;
+  let lo=0.01,hi=5;
+  for(let i=0;i<60;i++){const m=(lo+hi)/2;const p=bsPrice(S,K,T,r,m,tipo);if(Math.abs(p-price)<0.0001)return m;p<price?lo=m:hi=m;}
+  const res=(lo+hi)/2;return(res>0.01&&res<5)?res:null;
+}
 function getVI(strike,tipo){const K=parseFloat(strike);const ld=strikeLast[K];if(!ld)return 0.60;if(tipo==='C'&&ld.viCall&&ld.viCall>0.01)return ld.viCall;if(tipo==='P'&&ld.viPut&&ld.viPut>0.01)return ld.viPut;if(ld.viCall&&ld.viCall>0.01)return ld.viCall;if(ld.viPut&&ld.viPut>0.01)return ld.viPut;return 0.60;}
 
 // ─── PAYOFF BUILDER ───────────────────────────────────────────────────────────
@@ -1356,6 +1437,29 @@ function calcularGriegas(v,S,r,T,optSize,undSize){
   return{delta:totDelta,gamma:totGamma,vega:totVega,theta:totTheta,rho:totRho,prob:probExito};
 }
 
+let _pbMaxGain=null,_pbMaxLoss=null;
+function calcularKelly(){
+  const capital=parseFloat(document.getElementById('kelly-capital')?.value)||500000;
+  const pExito=parseFloat(document.getElementById('kelly-prob')?.value)||55;
+  const rEl=document.getElementById('kelly-result');if(!rEl)return;
+  if(_pbMaxGain===null||_pbMaxLoss===null||_pbMaxGain<=0||_pbMaxLoss>=0){rEl.innerHTML='<span style="color:#404060;">Cargá una estrategia con ganancia y pérdida definidas.</span>';return;}
+  const b=_pbMaxGain,loss=Math.abs(_pbMaxLoss);
+  const rratio=b/loss,p=pExito/100,q=1-p;
+  const kelly=(p*rratio-q)/rratio;
+  const halfKelly=Math.max(kelly/2,0);
+  const capitalSug=Math.round(capital*halfKelly);
+  const lotes=loss>0?Math.floor(capitalSug/loss):0;
+  const kellyColor=kelly>0.5?'#ef4444':kelly>0.25?'#f59e0b':'#22c55e';
+  rEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:4px;">
+    <div class="mini-stat"><div class="mini-stat-label">R/R</div><div class="mini-stat-val" style="color:#f59e0b;">${rratio.toFixed(2)}x</div></div>
+    <div class="mini-stat"><div class="mini-stat-label">Kelly</div><div class="mini-stat-val" style="color:${kellyColor};">${(kelly*100).toFixed(1)}%</div></div>
+    <div class="mini-stat"><div class="mini-stat-label">½ Kelly</div><div class="mini-stat-val" style="color:#22c55e;">${(halfKelly*100).toFixed(1)}%</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+    <div class="mini-stat"><div class="mini-stat-label">Capital sugerido</div><div class="mini-stat-val" style="color:#f59e0b;font-size:11px;">$${fmtARS(capitalSug)}</div></div>
+    <div class="mini-stat"><div class="mini-stat-label">Lotes (~)</div><div class="mini-stat-val" style="color:#a0c4ff;">${lotes}</div></div>
+  </div>`;
+}
 function recalcularCF(){
   const costoEl=document.getElementById('stat-costo');
   const capital=parseFloat((costoEl?costoEl.textContent.replace(/\./g,'').replace(',','.'):'')||'0')||0;
@@ -1393,9 +1497,11 @@ function recalcular(){
   const precios=[],payoffs=[];
   for(let i=0;i<=steps;i++){const S=sMin+(sMax-sMin)*i/steps;precios.push(S.toFixed(0));payoffs.push(calcularPayoff(S,v,optSize,undSize));}
   const maxGan=Math.max(...payoffs),maxPer=Math.min(...payoffs);
+  _pbMaxGain=maxGan<1e9?maxGan:null;_pbMaxLoss=maxPer>-1e9?maxPer:null;
   const maxGanEl=document.getElementById('stat-maxgan'),maxPerEl=document.getElementById('stat-maxper');
   maxGanEl.textContent=maxGan<1e9?fmtARS(maxGan):'∞';
   maxPerEl.textContent=maxPer>-1e9?fmtARS(maxPer):'-∞';
+  calcularKelly();
   maxGanEl.style.color=maxGan>=0?'var(--positive)':'var(--negative)';
   maxPerEl.style.color='var(--negative)';
   const bes=[];
@@ -1722,6 +1828,31 @@ function renderVolatilityDashboard(){
       <div class="mini-stat"><div class="mini-stat-label">VI mín</div><div class="mini-stat-val" style="color:#22c55e;">${(()=>{const v=Math.min(...[...viCalls,...viPuts].filter(x=>x!==null&&!isNaN(x)&&x>0));return isFinite(v)?v.toFixed(1)+'%':'—';})()}</div></div>
       <div class="mini-stat"><div class="mini-stat-label">VI máx</div><div class="mini-stat-val" style="color:#ef4444;">${(()=>{const v=Math.max(...[...viCalls,...viPuts].filter(x=>x!==null&&!isNaN(x)&&x>0));return isFinite(v)?v.toFixed(1)+'%':'—';})()}</div></div>
     </div>`;}
+  // Vol realizada vs implícita (HV20)
+  const volRealPanel=document.getElementById('vol-real-panel');
+  if(volRealPanel){
+    const histData=window[currentTicker+'_HIST_DATA']||window.GGAL_HIST_DATA||[];
+    let hv20=null;
+    if(histData.length>=21){
+      const recent=histData.slice(-21);
+      const rets=[];for(let _i=1;_i<recent.length;_i++)rets.push(Math.log(recent[_i][1]/recent[_i-1][1]));
+      const mean=rets.reduce((a,b)=>a+b,0)/rets.length;
+      const variance=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/rets.length;
+      hv20=Math.sqrt(variance*252)*100;
+    }
+    const viAtmPct=viC_atm*100;
+    const prem=hv20&&hv20>0?viAtmPct/hv20:null;
+    const em=spotGGAL&&viC_atm&&diasVto?spotGGAL*viC_atm*Math.sqrt(diasVto/365):0;
+    let regime='—';
+    if(prem){if(prem>1.3)regime='<span style="color:#ef4444;font-weight:700;">IV CARA (vender)</span>';else if(prem>0.9)regime='<span style="color:#f59e0b;font-weight:700;">IV JUSTA</span>';else regime='<span style="color:#22c55e;font-weight:700;">IV BARATA (comprar)</span>';}
+    volRealPanel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-family:var(--font);margin-bottom:8px;">
+      <div class="mini-stat"><div class="mini-stat-label">HV20</div><div class="mini-stat-val" style="color:#a0c4ff;">${hv20?hv20.toFixed(1)+'%':'—'}</div></div>
+      <div class="mini-stat"><div class="mini-stat-label">IV ATM</div><div class="mini-stat-val" style="color:#f59e0b;">${viAtmPct.toFixed(1)}%</div></div>
+      <div class="mini-stat"><div class="mini-stat-label">IV/HV</div><div class="mini-stat-val" style="color:#60a5fa;">${prem?prem.toFixed(2)+'x':'—'}</div></div>
+    </div>
+    <div style="font-size:12px;font-family:var(--font);">Régimen: ${regime}</div>
+    <div style="margin-top:4px;font-size:10px;color:#505070;font-family:var(--font);">Movimiento esperado ±1σ (${diasVto||37}d): <b style="color:#f59e0b;">${em>0?'±$'+fmtARS(Math.round(em))+' ('+(em/(spotGGAL||1)*100).toFixed(1)+'%)':'—'}</b></div>`;
+  }
   const hist=JSON.parse(localStorage.getItem('vi_hist_'+currentTicker)||'[]');
   const hoy=new Date().toISOString().split('T')[0];
   if(!hist.find(h=>h.fecha===hoy)&&viC_atm>0){hist.push({fecha:hoy,vi:viC_atm*100});if(hist.length>252)hist.shift();localStorage.setItem('vi_hist_'+currentTicker,JSON.stringify(hist));}
@@ -1867,7 +1998,8 @@ async function _loadPositionsFromServer(ticker){
 function _calcPayoffStats(){
   const S0=spotGGAL||6600;
   const lo=S0*0.3,hi=S0*2.2,steps=1200,step=(hi-lo)/steps;
-  const allP=posicionesAbiertas.flatMap(pos=>pos.patas.map(p=>({...p,_opt:pos.optSize||100,_und:pos.undSize||1})));
+  // Excluir acciones (tipo 'S') del cálculo de payoff stats — solo opciones
+  const allP=posicionesAbiertas.flatMap(pos=>pos.patas.filter(p=>p.tipo!=='S').map(p=>({...p,_opt:pos.optSize||100,_und:pos.undSize||1})));
   if(!allP.length)return{bes:[],beInf:null,beSup:null,maxGain:null,maxLoss:null};
   function pnlAt(S){return allP.reduce((t,p)=>{const K=parseFloat(p.strike),prima=parseFloat(p.prima)||0,cant=parseInt(p.cant)||1,sz=p.tipo==='S'?p._und:p._opt;let pl=0;if(p.tipo==='C')pl=(Math.max(S-K,0)-prima)*cant*sz;else if(p.tipo==='P')pl=(Math.max(K-S,0)-prima)*cant*sz;else pl=(S-K)*cant*sz;return t+pl;},0);}
   const bes=[];let prev=pnlAt(lo),maxGain=prev,maxLoss=prev;
@@ -2019,6 +2151,38 @@ function renderPosicionesAbiertas(){
   set('pos-delta-total',totDelta.toFixed(2));set('pos-gamma-total',totGamma.toFixed(4));
   set('pos-theta-total',totTheta.toFixed(2),totTheta<0?'#ef4444':'#22c55e');
   set('pos-vega-total',totVega.toFixed(2));set('pos-capital-total','$'+fmtARS(totCapital));
+  // P&L cerradas y acumulado
+  const cerradasPnl=cerradasList.reduce((s,c2)=>s+c2.pnlCierre,0);
+  const pnlAcum=totPnl+cerradasPnl;
+  set('pos-pnl-cerradas','$'+fmtARS(Math.round(cerradasPnl)),cerradasPnl>=0?'#a78bfa':'#ef4444');
+  set('pos-pnl-acum','$'+fmtARS(Math.round(pnlAcum)),pnlAcum>=0?'#22c55e':'#ef4444');
+  // Costo financiero anual (40%) sobre capital de opciones
+  const optCapital=posicionesAbiertas.reduce((t,pos)=>{const sz=pos.optSize||100;return t+pos.patas.filter(p=>p.tipo!=='S').reduce((a,p)=>a+Math.abs(parseFloat(p.prima)||0)*Math.abs(parseInt(p.cant)||1)*sz,0);},0);
+  const CF=optCapital*(0.40)*(diasVto||37)/365;
+  set('pos-costo-fin','-$'+fmtARS(Math.round(CF)),'#ef4444');
+  // Exposición neta por strike
+  const expMap={};
+  posicionesAbiertas.forEach(pos=>{
+    pos.patas.forEach(p=>{
+      const k=`${p.tipo}|${p.strike}`;
+      if(!expMap[k])expMap[k]={tipo:p.tipo,strike:p.strike,lotes:0};
+      expMap[k].lotes+=(parseInt(p.cant)||1);
+    });
+  });
+  const expTbody=document.getElementById('exposicion-neta-body');
+  if(expTbody){
+    const rows=Object.values(expMap).sort((a,b)=>a.tipo.localeCompare(b.tipo)||a.strike-b.strike);
+    expTbody.innerHTML=rows.length?rows.map(e=>{
+      const posStr=e.lotes>0?'LONG':'SHORT';const col=e.lotes>0?'#22c55e':'#ef4444';
+      const tipCol=e.tipo==='C'?'#22c55e':e.tipo==='P'?'#ef4444':'#a0c4ff';
+      return `<tr style="border-bottom:1px solid #0f0f1a;">
+        <td style="padding:3px 10px;font-family:var(--font);font-size:11px;font-weight:700;color:${tipCol};">${e.tipo}</td>
+        <td style="padding:3px 10px;text-align:right;font-family:var(--font);font-size:12px;">$${e.strike.toLocaleString('es-AR')}</td>
+        <td style="padding:3px 10px;text-align:right;font-family:var(--font);font-size:12px;font-weight:700;color:${col};">${e.lotes>0?'+':''}${e.lotes}</td>
+        <td style="padding:3px 10px;text-align:right;font-family:var(--font);font-size:11px;color:${col};">${posStr}</td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="4" style="padding:8px;text-align:center;color:#404040;font-family:var(--font);">Sin posiciones.</td></tr>';
+  }
   const ps=_calcPayoffStats();
   const _se=id=>document.getElementById(id);
   const _sv=(id,txt,col)=>{const el=_se(id);if(el){el.textContent=txt;if(col)el.style.color=col;}};
@@ -2057,7 +2221,7 @@ function setPataLast(posId,legIdx,val){
 function renderEscenariosTable(){
   const tbody=document.getElementById('escenarios-body');
   if(!tbody)return;
-  if(!posicionesAbiertas.length){tbody.innerHTML='<tr><td colspan="4" style="padding:10px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones.</td></tr>';return;}
+  if(!posicionesAbiertas.length){tbody.innerHTML='<tr><td colspan="6" style="padding:10px;text-align:center;color:#404040;font-family:var(--font);">No hay posiciones.</td></tr>';return;}
   const S0=spotGGAL||6600;
   const T_teo=(diasVto||37)/365,r=Math.log(1+RF_ANUAL);
   const todasPatas=posicionesAbiertas.flatMap(pos=>pos.patas.map(p=>({...p,_optSize:pos.optSize||100,_undSize:pos.undSize||1})));
@@ -2088,11 +2252,16 @@ function renderEscenariosTable(){
     const movColor=pct>0?'#22c55e':pct<0?'#ef4444':'#f59e0b';
     const fColor=pnlFinish>=0?'#22c55e':'#ef4444';
     const tColor=pnlTeo>=0?'#60a5fa':'#f87171';
+    const cerPnl=cerradasList.reduce((s,c2)=>s+c2.pnlCierre,0);
+    const pnlFN=pnlFinish+cerPnl,pnlTN=pnlTeo+cerPnl;
+    const fnColor=pnlFN>=0?'#4ade80':'#f87171';const tnColor=pnlTN>=0?'#93c5fd':'#fca5a5';
     html+=`<tr style="border-bottom:1px solid #0f0f1a;${bg}">
       <td style="text-align:right;padding:3px 10px;color:${movColor};font-weight:${isSpot?'700':'400'};">${pct>=0?'+':''}${pct}%</td>
       <td style="text-align:right;padding:3px 10px;color:#a0a0c0;font-family:var(--font);font-size:11px;">$${fmtARS(Math.round(ST))}</td>
       <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'500'};color:${fColor};font-family:var(--font);font-size:11px;">${pnlFinish>=0?'+':''}$${fmtARS(Math.round(pnlFinish))}</td>
       <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'400'};color:${tColor};font-family:var(--font);font-size:11px;">${pnlTeo>=0?'+':''}$${fmtARS(Math.round(pnlTeo))}</td>
+      <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'400'};color:${fnColor};font-family:var(--font);font-size:11px;">${pnlFN>=0?'+':''}$${fmtARS(Math.round(pnlFN))}</td>
+      <td style="text-align:right;padding:3px 10px;font-weight:${isSpot?'700':'400'};color:${tnColor};font-family:var(--font);font-size:11px;">${pnlTN>=0?'+':''}$${fmtARS(Math.round(pnlTN))}</td>
     </tr>`;
   }
   tbody.innerHTML=html;
@@ -2195,6 +2364,11 @@ function cargarDatosEmbebidos(ticker) {
       putData: s.put
     };
   });
+  // Fallback IV from last price (for embedded data with missing VI)
+  {const _T=(diasVto||35)/365,_r=Math.log(1+RF_ANUAL),_S=data.spot;
+  Object.keys(strikeLast).forEach(Ks=>{const ld=strikeLast[Ks],Kn=parseFloat(Ks);
+    if(!ld.viCall&&ld.call&&_S)ld.viCall=_impliedVol(_S,Kn,_T,_r,ld.call,'C');
+    if(!ld.viPut&&ld.put&&_S)ld.viPut=_impliedVol(_S,Kn,_T,_r,ld.put,'P');});}
 
   // Render plaza
   const T = diasVto / 365;
@@ -2468,7 +2642,7 @@ function renderFlujoGex(){
   let maxOiC=0,maxOiP=0,maxOiCK=null,maxOiPK=null;
   for(const K of strikesDisponibles){
     const ld=strikeLast[K];if(!ld)continue;
-    const bidC=ld.bidCall||0, bidP=ld.bidPut||0;
+    const bidC=ld.bidCall||ld.call||0, bidP=ld.bidPut||ld.put||0;
     const viC=(ld.viCall&&ld.viCall>0)?ld.viCall:(bidC>0&&spot>0?0.4:0);
     const viP=(ld.viPut&&ld.viPut>0)?ld.viPut:(bidP>0&&spot>0?0.4:0);
     // OI proxy: bid × 100 (escala a nocional por acción)
