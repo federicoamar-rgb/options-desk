@@ -1025,20 +1025,31 @@
 // ─── CONFIGURACIÓN DE TICKERS ─────────────────────────────────────────────────
 // Para agregar PAMP o YPFD: publicar su Google Sheet como CSV y pegar la URL
 // ══════════════════════════════════════════════════════════════════════════════
+// ─── FUENTE DE DATOS: local (localhost:8765) o GitHub Pages ──────────────────
+// Cuando abrís el desk localmente (file:// o localhost), usa el servidor local
+// para datos en tiempo real. Cuando accedés desde la web usa GitHub Pages.
+const _isLocal = window.location.protocol === 'file:' ||
+                 window.location.hostname === 'localhost' ||
+                 window.location.hostname === '127.0.0.1';
+const _BASE_CSV = _isLocal
+  ? 'http://localhost:8765'
+  : 'https://federicoamar-rgb.github.io/options-desk';
+const _BASE_API = 'http://localhost:8765';  // siempre local para save/load
+
 const TICKER_CONFIG = {
   GGAL: {
     name: 'GGAL', fullName: 'Grupo Financiero Galicia', icon: 'GO',
-    csvUrl: 'https://federicoamar-rgb.github.io/options-desk/GGAL.csv',
+    csvUrl: `${_BASE_CSV}/GGAL.csv`,
     color: '#d4581a', light: 'rgba(212,88,26,0.15)'
   },
   PAMP: {
     name: 'PAMP', fullName: 'Pampa Energía', icon: 'PA',
-    csvUrl: 'https://federicoamar-rgb.github.io/options-desk/PAMP.csv',
+    csvUrl: `${_BASE_CSV}/PAMP.csv`,
     color: '#3b82f6', light: 'rgba(59,130,246,0.15)'
   },
   YPFD: {
     name: 'YPFD', fullName: 'YPF', icon: 'YP',
-    csvUrl: 'https://federicoamar-rgb.github.io/options-desk/YPFD.csv',
+    csvUrl: `${_BASE_CSV}/YPFD.csv`,
     color: '#22c55e', light: 'rgba(34,197,94,0.12)'
   }
 };
@@ -1960,7 +1971,7 @@ function cerrarPosicion(id){
     cerradasList.push(cerrada);
     localStorage.setItem('cerradas_'+currentTicker,JSON.stringify(cerradasList));
     // Registrar en historico.json del trading system
-    fetch('http://localhost:8765/log_historico',{
+    fetch(`${_BASE_API}/log_historico`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         fecha_apertura:pos.fecha,
@@ -1996,14 +2007,14 @@ function resetearPosicionesDefault(){
 // ─── PERSISTENCE HELPERS (localStorage + server) ─────────────────────────────
 function _persistPositions(ticker, positions){
   localStorage.setItem('pos_'+ticker, JSON.stringify(positions));
-  fetch('http://localhost:8765/save_positions',{
+  fetch(`${_BASE_API}/save_positions`,{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ticker, positions})
   }).catch(()=>{});
 }
 async function _loadPositionsFromServer(ticker){
   try{
-    const r=await fetch(`http://localhost:8765/load_positions?ticker=${ticker}`,{signal:AbortSignal.timeout(2000)});
+    const r=await fetch(`${_BASE_API}/load_positions?ticker=${ticker}`,{signal:AbortSignal.timeout(2000)});
     if(!r.ok)return;
     const d=await r.json();
     if(d.ok&&Array.isArray(d.positions)){
